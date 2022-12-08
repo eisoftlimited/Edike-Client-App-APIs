@@ -38,13 +38,13 @@ app.get("/", (req, res) => {
 
 const authRouters = require("./routes/auth");
 const beneficiaryRouters = require("./routes/beneficiary");
-// const orderRouters = require("./routes/order");
-// const bicycleRouters = require("./routes/bicycle");
+const cardRouters = require("./routes/card");
+const loanRouters = require("./routes/loan");
 
 app.use("/edike/api/v1/auth", authRouters);
 app.use("/edike/api/v1/beneficiary", beneficiaryRouters);
-// app.use("/api/v1/order", orderRouters);
-// app.use("/api/v1/waitlist", bicycleRouters);
+app.use("/edike/api/v1/card", cardRouters);
+app.use("/edike/api/v1/loan", loanRouters);
 
 app.use(notFound);
 app.use(errorHandler);
