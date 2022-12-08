@@ -40,7 +40,6 @@ const authRouters = require("./routes/auth");
 const beneficiaryRouters = require("./routes/beneficiary");
 const cardRouters = require("./routes/card");
 const loanRouters = require("./routes/loan");
-const { HTTP_VERSION_NOT_SUPPORTED } = require("http-status-codes");
 
 app.use("/edike/api/v1/auth", authRouters);
 app.use("/edike/api/v1/beneficiary", beneficiaryRouters);
@@ -50,16 +49,13 @@ app.use("/edike/api/v1/loan", loanRouters);
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 9191;
-const HOST = process.env.HOST || "0.0.0.0";
+const PORT = process.env.PORT;
 
 listEndPoints(app);
 const start = async () => {
   try {
     await connectDatabase(process.env.MONGODBURL);
-    app.listen(PORT, HOST, () =>
-      console.log(`Server Listening at Port ${PORT}`)
-    );
+    app.listen(PORT, () => console.log(`Server Listening at Port ${PORT}`));
   } catch (error) {
     console.log(error);
   }
