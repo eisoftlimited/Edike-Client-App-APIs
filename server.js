@@ -7,9 +7,12 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const listEndPoints = require("list_end_points");
 const connectDatabase = require("./config/edikeDb");
+const rimraf = require("rimraf");
+const fs = require("fs");
+const uploadsDirectory = __dirname + "/tmp";
+const path = require("path");
 
 const app = express();
-
 // Error Handlers
 const notFound = require("./middlewares/not-found");
 const errorHandler = require("./middlewares/error-handler");
@@ -49,6 +52,29 @@ app.use("/edike/api/v1/loan", loanRouters);
 // app.edikeeduloan@edike.ng
 app.use(notFound);
 app.use(errorHandler);
+
+fs.readdir(uploadsDirectory, function (err, files) {
+  files.forEach(function (file, index) {
+    fs.stat(path.join(uploadsDirectory, file), function (err, stat) {
+      var endTime, now;
+      if (err) {
+        return console.error(err);
+      }
+
+      now = new Date().getTime();
+      endTime = new Date(stat.ctime).getTime() + 86400000;
+
+      if (now > endTime) {
+        return rimraf(path.join(uploadsDirectory, file), function (err) {
+          if (err) {
+            return console.error(err);
+          }
+          console.log("tmp removed");
+        });
+      }
+    });
+  });
+});
 
 const PORT = process.env.PORT;
 

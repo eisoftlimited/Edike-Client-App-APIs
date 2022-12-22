@@ -36,7 +36,7 @@ const registerEmail = async (req, res) => {
 
   const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: "Bika<noreply@firansefood.com>",
+    from: `${process.env.EMAIL_FROM}`,
     to: email,
     subject: "Edike Account Activation",
     html: `
@@ -65,40 +65,6 @@ const registerEmail = async (req, res) => {
       status: "valid",
     });
   });
-
-  // sendgridMailer.setApiKey(process.env.SENDGRID_API_KEY);
-  // const msg = {
-  //   from: "www.edike.ng",
-  //   to: `${email}`,
-  //   subject: "Edike Account Activation",
-  //   html: `
-  // <div style="padding:10px 4px; font-weight:400">
-  //   <h2>Enter OTP to activate your account</h2>
-  //   <h3>
-  //    Welcome to Edike, Enter OTP for Account Verification.
-  //   </h3>
-  //   <p style="font-size:40px ; font-weight:700 ; text-align: center">
-  //     ${otp}
-  //   </p>
-  // </div>
-  //   `,
-  // };
-  // sendgridMailer
-  //   .send(msg)
-  //   .then((response) => {
-  //     return res.status(200).json({
-  //       msg: "We've sent a 6-digit Activation Code to your Email Address",
-  //       status: "valid",
-  //       response: response[0].statusCode,
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     return res.status(400).json({
-  //       msg: `${error.message}`,
-  //       status: "invalid",
-  //       error: error,
-  //     });
-  //   });
 
   const newUser = await User.create({
     firstname: req.body.firstname,
@@ -133,7 +99,7 @@ const resendOTP = async (req, res) => {
 
   const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: "Bika<noreply@firansefood.com>",
+    from: `${process.env.EMAIL_FROM}`,
     to: user.email,
     subject: "Edike Account Activation",
     html: `
@@ -179,7 +145,7 @@ const resendResetPasswordOTP = async (req, res) => {
 
   const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: "Bika<noreply@firansefood.com>",
+    from: `${process.env.EMAIL_FROM}`,
     to: user.email,
     subject: "Edike Reset Password",
     html: `
@@ -279,7 +245,7 @@ const verifyNIN = async (req, res) => {
   const result = await cloudinary.uploader.upload(profileImage.tempFilePath, {
     public_id: `${Date.now()}`,
     resource_type: "auto",
-    folder: "Edike",
+    folder: "Edike User Profile Image- NIN",
   });
 
   const buff = await convertBase(result.secure_url);
@@ -373,7 +339,7 @@ const verifyBVN = async (req, res) => {
   const result = await cloudinary.uploader.upload(profileImage.tempFilePath, {
     public_id: `${Date.now()}`,
     resource_type: "auto",
-    folder: "Edike",
+    folder: "Edike User Profile Image-BVN",
   });
 
   const buff = await convertBase(result.secure_url);
@@ -420,21 +386,43 @@ const verifyBVN = async (req, res) => {
 
     user.firstname = body.body.entity.first_name;
     user.lastname = body.body.entity.last_name;
-    user.middlename = body.body.entity.middle_name;
-    user.birthdate = body.body.entity.date_of_birth;
-    user.phoneNumber1 = body.body.entity.phone_number1;
-    user.phoneNumber2 = body.body.entity.phone_number2;
-    user.gender = body.body.entity.gender;
-    user.self_origin_state = body.body.entity.state_of_origin;
-    user.self_origin_lga = body.body.entity.lga_of_origin;
-    user.self_origin_place = body.body.entity.lga_of_residence;
-    user.nin = body.body.entity.nin;
-    user.isbvn = "approved";
-    user.bvn = body.body.entity.bvn;
-    user.profileImage = result.secure_url;
-    user.publicID = result.public_id;
-    user.residence_address = body.body.entity.residential_address;
-    user.marital_status = body.body.entity.marital_status;
+    !user.middlename
+      ? (user.middlename = body.body.entity.middle_name)
+      : user.middlename;
+    !user.birthdate
+      ? (user.birthdate = body.body.entity.date_of_birth)
+      : user.birthdate;
+    !user.phoneNumber1
+      ? (user.phoneNumber1 = body.body.entity.phone_number1)
+      : user.phoneNumber1;
+    !user.phoneNumber2
+      ? (user.phoneNumber2 = body.body.entity.phone_number2)
+      : user.phoneNumber2;
+    !user.gender ? (user.gender = body.body.entity.gender) : user.gender;
+    !user.self_origin_state
+      ? (user.self_origin_state = body.body.entity.state_of_origin)
+      : user.self_origin_state;
+    !user.self_origin_lga
+      ? (user.self_origin_lga = body.body.entity.lga_of_origin)
+      : user.self_origin_lga;
+    !user.self_origin_place
+      ? (user.self_origin_place = body.body.entity.lga_of_residence)
+      : user.self_origin_place;
+    !user.nin ? (user.nin = body.body.entity.nin) : user.nin;
+    user.isbvn === "pending"
+      ? (user.isbvn = "approved")
+      : user.isbvn === "pending";
+    !user.bvn ? (user.bvn = body.body.entity.bvn) : user.bvn;
+    !user.profileImage
+      ? (user.profileImage = result.secure_url)
+      : user.profileImage;
+    !user.publicID ? (user.publicID = result.public_id) : user.publicID;
+    !user.residence_address
+      ? (user.residence_address = body.body.entity.residential_address)
+      : user.residence_address;
+    !user.marital_status
+      ? (user.marital_status = body.body.entity.marital_status)
+      : user.marital_status;
 
     await user.save();
 
@@ -509,7 +497,7 @@ const forgotPassword = async (req, res) => {
             domain: DOMAIN,
           });
           const data = {
-            from: "Bika<noreply@firansefood.com>",
+            from: `${process.env.EMAIL_FROM}`,
             to: email,
             subject: "Edike Reset Password",
             html: `
