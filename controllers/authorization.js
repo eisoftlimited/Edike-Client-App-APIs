@@ -314,7 +314,7 @@ const loadUser = async (req, res) => {
 
 const verifyNIN = async (req, res) => {
   const { nin } = req.body;
-  const profileImage = req.files.img;
+  const profileImage = req.file;
 
   if (!nin) {
     throw new BadRequest("Enter Nigerian Identification Number");
@@ -413,7 +413,7 @@ const verifyNIN = async (req, res) => {
 
 const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
-  const profileImage = req.files.img;
+  const profileImage = req.file;
 
   if (!bvn) {
     throw new BadRequest("Enter Bank Verification Number");

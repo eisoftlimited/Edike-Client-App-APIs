@@ -1,7 +1,7 @@
 const express = require("express");
 const authenticationMiddleware = require("../middlewares/authentication");
-// const multer = require("multer");
-// const upload = multer({ dest: "uploads/" });
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 const {
@@ -29,8 +29,18 @@ router.get("/list/bankCode", listBank);
 router.post("/register", registerEmail);
 router.post("/activate/account", activateAccount);
 router.post("/login", loginEmail);
-router.post("/verify/nin", authenticationMiddleware, verifyNIN);
-router.post("/verify/bvn", authenticationMiddleware, verifyBVN);
+router.post(
+  "/verify/nin",
+  upload.single("img"),
+  authenticationMiddleware,
+  verifyNIN
+);
+router.post(
+  "/verify/bvn",
+  upload.single("img"),
+  authenticationMiddleware,
+  verifyBVN
+);
 router.post("/bank/bank-statement", authenticationMiddleware, addBankStatement);
 router.get(
   "/bank/user-bank-statement",

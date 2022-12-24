@@ -4,12 +4,11 @@ const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
 const express = require("express");
-const fileUpload = require("express-fileupload");
 const listEndPoints = require("list_end_points");
 const connectDatabase = require("./config/edikeDb");
 const rimraf = require("rimraf");
 const fs = require("fs");
-const uploadsDirectory = __dirname + "/tmp";
+const uploadsDirectory = __dirname + "/uploads";
 const path = require("path");
 
 const app = express();
@@ -19,12 +18,6 @@ const errorHandler = require("./middlewares/error-handler");
 
 // INITIALIZING MIDDLEWARE
 app.use(express.json());
-app.use(
-  fileUpload({
-    useTempFiles: true,
-    limits: { fileSize: 50 * 1024 * 1024 },
-  })
-);
 app.use(helmet());
 app.use(cors());
 app.use(xss());
@@ -69,7 +62,7 @@ fs.readdir(uploadsDirectory, function (err, files) {
           if (err) {
             return console.error(err);
           }
-          console.log("tmp removed");
+          console.log("upload removed");
         });
       }
     });
