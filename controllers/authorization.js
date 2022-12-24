@@ -415,8 +415,6 @@ const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
   const profileImage = req.file;
 
-  console.log(profileImage);
-
   if (!bvn) {
     throw new BadRequest("Enter Bank Verification Number");
   }
@@ -871,12 +869,10 @@ const getBankStatement = async (req, res) => {
     });
     await userbankStatement.save();
 
-    return res
-      .status(400)
-      .json({
-        msg: "Bank Statement , Please Add a New One",
-        status: "invalid",
-      });
+    return res.status(400).json({
+      msg: "Bank Statement , Please Add a New One",
+      status: "invalid",
+    });
   }
 };
 
