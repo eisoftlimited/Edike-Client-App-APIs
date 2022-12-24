@@ -1,11 +1,19 @@
 const { StatusCodes } = require("http-status-codes");
-const fs = require("fs");
 const { NotFound, BadRequest } = require("../errors");
 const Loan = require("../models/Loan");
-const request = require("request");
-const path = require("path");
+const User = require("../models/User");
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_APIKEY,
+  api_secret: process.env.CLOUDINARY_APISECRET,
+});
 
 const createLoan = async (req, res) => {
+  const {
+    params: { id: beneficiaryId },
+  } = req;
+  const { beneficiary_file } = req.files;
   const {
     beneficiary_name,
     beneficiary_amount,
@@ -22,46 +30,43 @@ const createLoan = async (req, res) => {
   ) {
     throw new BadRequest("Enter all Fields");
   }
-  const head = path.dirname(`${req.files.beneficiary_file.tempFilePath}`);
-  const tail = path.basename(`${req.files.beneficiary_file.tempFilePath}`);
-  let ans = `${head}` + "\\" + `${tail}`;
 
-  const options = {
-    method: "POST",
-    url: "https://prod-categorization-service.pub.credrails.com/v1alpha2/analyseAccountStatement?view=detailed",
-    headers: {
-      accept: "application/json",
-      "content-type": "multipart/form-data",
-      "X-API-KEY": process.env.CREDRAILS_KEY,
-    },
-    formData: {
-      analysisType: loan_type,
-      fspId: bank_name,
-      data: {
-        value: fs.createReadStream(`${ans}`),
-        options: {
-          filename: `${req.files.beneficiary_file.name}`,
-          contentType: "application/pdf",
-        },
-      },
-    },
-  };
+  if (!beneficiary_file) {
+    throw new BadRequest("Enter School Bill in PDF Format");
+  }
 
-  request(options, async function (error, body) {
-    if (error) {
-      return res.status(400).json({ error });
+  const result = await cloudinary.uploader.upload(
+    req.files.beneficiary_file.tempFilePath,
+    {
+      public_id: `${Date.now()}`,
+      resource_type: "raw",
+      folder: "Edike User School Bill",
     }
+  );
 
-    const trans = JSON.parse(body.body);
-    res.status(StatusCodes.OK).json({
-      trans: trans,
-      status: "valid",
-    });
+  const loan = await Loan.create({
+    createdBy: req.user.id,
+    beneficiary_name: req.body.beneficiary_name,
+    loan_type: req.body.loan_type,
+    bank_name: req.body.bank_name,
+    beneficiary_duration: req.body.beneficiary_duration,
+    beneficiary_amount: req.body.beneficiary_amount,
+    beneficiary_file: result.secure_url,
+    etag: result.etag,
+    signature: result.signature,
+    publicID: result.public_id,
+    fileType: result.resource_type,
+    beneficiaryFor: beneficiaryId,
   });
 
-  // req.body.createdBy = req.user.id;
-  // const loan = await Loan.create(req.body);
-  // res.status(StatusCodes.CREATED).json({ loan });
+  await loan.save();
+  const user = await User.findById({ _id: req.user.id });
+  if (!user) {
+    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
+  }
+  user.isappliedforloan = "approved";
+  await user.save();
+  return res.status(StatusCodes.CREATED).json({ loan, status: "valid" });
 };
 
 const getAllLoans = async (req, res) => {

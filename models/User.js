@@ -124,10 +124,13 @@ const UserSchema = new mongoose.Schema(
     isnin: {
       type: String,
     },
-    isloaned: {
+    isappliedforloan: {
       type: String,
     },
     iscardadded: {
+      type: String,
+    },
+    isbankstatementadded: {
       type: String,
     },
   },

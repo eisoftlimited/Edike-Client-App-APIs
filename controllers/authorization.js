@@ -8,6 +8,10 @@ const DOMAIN = process.env.MAILGUN_SERVER;
 const { generateOTP, convertBase } = require("../utilities/otp");
 const cloudinary = require("cloudinary").v2;
 const request = require("request");
+const path = require("path");
+const fs = require("fs");
+const BankStatement = require("../models/BankStatement");
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_APIKEY,
@@ -40,16 +44,44 @@ const registerEmail = async (req, res) => {
     to: email,
     subject: "Edike Account Activation",
     html: `
-      <body style="padding:10px 4px; font-weight:400">
-        <h1>
+      <body style="padding:2px 4px; font-weight:400">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
+        </div>
+        <h2>
           Welcome to Edike.
-        </h1>
-        <h1>
+        </h2>
+        <h3>
         Enter OTP for Account Verification.
-        </h1>
-        <p style="font-size:40px ; font-weight:700 ; text-align: center">
-        ${otp}
+        </h3>
+        <p>We're delighted to have you on board, Let's get your email address verified</p>
+        <p>Please use this verification code below to complete your sign up process: </p>
+        <p style="font-size:40px ; font-weight:700; text-align: center">
+        <strong>${otp}</strong>
         </p>
+        <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div>
+        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        </div>
       </body>
     `,
   };
@@ -76,8 +108,9 @@ const registerEmail = async (req, res) => {
     isAccountVerified: "pending",
     isnin: "pending",
     isbvn: "pending",
-    isloaned: "pending",
+    isappliedforloan: "pending",
     iscardadded: "pending",
+    isbankstatementadded: "pending",
   });
 
   await newUser.save();
@@ -103,16 +136,44 @@ const resendOTP = async (req, res) => {
     to: user.email,
     subject: "Edike Account Activation",
     html: `
-      <body style="padding:10px 4px; font-weight:400">
-        <h1>
+      <body style="padding:2px 4px; font-weight:400">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
+        </div>
+        <h2>
           Welcome to Edike.
-        </h1>
-        <h1>
+        </h2>
+        <h3>
         Enter OTP for Account Verification.
-        </h1>
-        <p style="font-size:40px ; font-weight:700 ; text-align: center">
-        ${otp}
+        </h3>
+        <p>We're delighted to have you on board, Let's get your email address verified</p>
+        <p>Please use this verification code below to complete your sign up process: </p>
+        <p style="font-size:40px ; font-weight:700; text-align: center">
+        <strong>${otp}</strong>
         </p>
+        <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div>
+        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        </div>
       </body>
     `,
   };
@@ -149,16 +210,44 @@ const resendResetPasswordOTP = async (req, res) => {
     to: user.email,
     subject: "Edike Reset Password",
     html: `
-      <body style="padding:10px 4px; font-weight:400">
-        <h1>
-          Welcome to Edike.
-        </h1>
-        <h1>
-        Enter OTP to Reset Password.
-        </h1>
-        <p style="font-size:40px ; font-weight:700 ; text-align: center">
-        ${otp}
+      <body style="padding:2px 4px; font-weight:400">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
+        </div>
+        <h2>
+          Edike Reset Verification
+        </h2>
+        <h3>
+        Enter OTP for Reset Password Confirmation.
+        </h3>
+        <p>We're delighted to have you on board, Let's help you reset your password</p>
+        <p>Please use this verification code below to complete your reset process: </p>
+        <p style="font-size:40px ; font-weight:700; text-align: center">
+        <strong>${otp}</strong>
         </p>
+     <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div>
+        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        </div>
       </body>
     `,
   };
@@ -225,7 +314,7 @@ const loadUser = async (req, res) => {
 
 const verifyNIN = async (req, res) => {
   const { nin } = req.body;
-  const profileImage = req.file;
+  const profileImage = req.files.img;
 
   if (!nin) {
     throw new BadRequest("Enter Nigerian Identification Number");
@@ -324,7 +413,7 @@ const verifyNIN = async (req, res) => {
 
 const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
-  const profileImage = req.files.image;
+  const profileImage = req.files.img;
 
   if (!bvn) {
     throw new BadRequest("Enter Bank Verification Number");
@@ -501,16 +590,48 @@ const forgotPassword = async (req, res) => {
             to: email,
             subject: "Edike Reset Password",
             html: `
-            <body style="padding:10px 4px; font-weight:400">
-              <h1>
-               Edike Reset Password, Enter OTP .
-              </h1>
-              <p style="font-size:40px ; font-weight:700; text-align: center ">
-                ${user.resetPasswordToken}
-              </p>
-            </body>
-             
-              `,
+       <body style="padding:2px 4px; font-weight:400">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
+        </div>
+        <h2>
+          Edike Reset Verification.
+        </h2>
+        <h3>
+        Enter OTP for Reset Password Confirmation
+        </h3>
+        <p>We're delighted to have you on board, Let's get your email address verified</p>
+        <p>Please use this verification code below to complete your sign up process: </p>
+        <p style="font-size:40px ; font-weight:700; text-align: center">
+        <strong>
+          ${otp}
+        </strong>
+        </p>
+        <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div>
+        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        </div>
+      </body>
+             `,
           };
           mg.messages().send(data, function (error) {
             if (error) {
@@ -637,6 +758,126 @@ const listBank = async (req, res) => {
   });
 };
 
+const addBankStatement = async (req, res) => {
+  const bank_file = req.files.bank_file;
+  const { bank_name, loan_access_type } = req.body;
+  if (!bank_name || !loan_access_type) {
+    throw new BadRequest("Enter all Fields");
+  }
+  if (!bank_file) {
+    throw new BadRequest("Enter Your 6months Bank Statement in pdf");
+  }
+
+  const head = path.dirname(`${req.files.bank_file.tempFilePath}`);
+  const tail = path.basename(`${req.files.bank_file.tempFilePath}`);
+  let ans = `${head}` + "\\" + `${tail}`;
+
+  const userbankStatement = await BankStatement.findOne({
+    createdBy: req.user.id,
+  });
+
+  if (userbankStatement) {
+    return res
+      .status(400)
+      .json({ msg: "Bank Statement Already Exist", status: "invalid" });
+  }
+
+  if (!userbankStatement) {
+    const options = {
+      method: "POST",
+      url: "https://prod-categorization-service.pub.credrails.com/v1alpha2/analyseAccountStatement?view=detailed",
+      headers: {
+        accept: "application/json",
+        "content-type": "multipart/form-data",
+        "X-API-KEY": process.env.CREDRAILS_KEY,
+      },
+      formData: {
+        analysisType: loan_access_type,
+        fspId: bank_name,
+        data: {
+          value: fs.createReadStream(`${ans}`),
+          options: {
+            filename: `${req.files.bank_file.name}`,
+            contentType: "application/pdf",
+          },
+        },
+      },
+    };
+
+    request(options, async function (error, body) {
+      if (error) {
+        return res.status(400).json({ error });
+      }
+      const trans = JSON.parse(body.body);
+
+      const userBankStats = await BankStatement.create({
+        createdBy: req.user.id,
+        bank_name: req.body.bank_name,
+        bankCreds: trans,
+      });
+
+      await userBankStats.save();
+      const user = await User.findById({ _id: req.user.id });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ msg: "Unverified User", status: "invalid" });
+      }
+      user.isbankstatementadded = "approved";
+      await user.save();
+      return res.status(StatusCodes.CREATED).json({
+        msg: "Bank Statement Verification Successful",
+        status: "valid",
+      });
+    });
+  }
+};
+
+const getBankStatement = async (req, res) => {
+  const {
+    user: { id },
+  } = req;
+
+  const userbankStatement = await BankStatement.find({
+    createdBy: id,
+  });
+
+  if (!userbankStatement) {
+    throw new NotFound("Bank Statement is Not Found");
+  }
+
+  var diff =
+    (new Date(`${userbankStatement[0].sixMonths}`).getTime() -
+      new Date(`${new Date()}`).getTime()) /
+    1000;
+
+  diff /= 60 * 60 * 24 * 7 * 4;
+  const monthsDiff = Math.round(diff);
+
+  if (monthsDiff > 1) {
+    return res.status(200).json({
+      msg: `Bank Statement Exist and is Valid till ${new Date(
+        `${userbankStatement[0].sixMonths}`
+      ).toDateString()}`,
+      userbankStatement,
+      status: "valid",
+    });
+  }
+  if (monthsDiff < 1) {
+    const userbankStatement = await BankStatement.findByIdAndDelete({
+      createdBy: id,
+    });
+    await userbankStatement.save();
+
+    return res
+      .status(400)
+      .json({
+        msg: "Bank Statement , Please Add a New One",
+        status: "invalid",
+      });
+  }
+};
+
 module.exports = {
   registerEmail,
   loginEmail,
@@ -651,4 +892,6 @@ module.exports = {
   listBank,
   resendOTP,
   resendResetPasswordOTP,
+  addBankStatement,
+  getBankStatement,
 };

@@ -15,10 +15,15 @@ const createCard = async (req, res) => {
   if ((card_number.length < 14) | (card_number.length > 18)) {
     throw new BadRequest("Incomplete Card Number");
   }
-  const usercard = await Card.find({ createdBy: req.user.id });
+
+
+
+  const usercard = await Card.findOne({ createdBy: req.user.id });
   if (usercard) {
     res.status(400).json({ msg: "Card Already Exist", status: "invalid" });
-  } else {
+  } 
+
+  if (!usercard) {
     const bin = card_number.substring(0, 6);
     const options = {
       method: "GET",
@@ -60,16 +65,16 @@ const createCard = async (req, res) => {
       return res.status(StatusCodes.CREATED).json({ card, status: "valid" });
     });
   }
+
+
 };
 
 const getCard = async (req, res) => {
   const {
     user: { id },
-    params: { id: cardId },
   } = req;
 
   const card = await Card.findOne({
-    _id: cardId,
     createdBy: id,
   });
 

@@ -16,11 +16,28 @@ const LoanSchema = mongoose.Schema(
     },
     beneficiary_file: {
       type: Buffer,
-      required: [true, "Enter Bank Account Statement pdf"],
+      required: [true, "Enter School Bill Statement pdf"],
+    },
+    etag: {
+      type: String,
+    },
+    signature: {
+      type: String,
+    },
+    publicID: {
+      type: String,
+    },
+    fileType: {
+      type: String,
     },
     date: {
       type: Date,
       default: Date.now,
+    },
+    role: {
+      type: String,
+      enum: ["ongoing", "pending", "declined", "completed"],
+      default: "ongoing",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

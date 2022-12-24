@@ -18,6 +18,8 @@ const {
   listBank,
   resendOTP,
   resendResetPasswordOTP,
+  addBankStatement,
+  getBankStatement,
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
@@ -29,6 +31,12 @@ router.post("/activate/account", activateAccount);
 router.post("/login", loginEmail);
 router.post("/verify/nin", authenticationMiddleware, verifyNIN);
 router.post("/verify/bvn", authenticationMiddleware, verifyBVN);
+router.post("/bank/bank-statement", authenticationMiddleware, addBankStatement);
+router.get(
+  "/bank/user-bank-statement",
+  authenticationMiddleware,
+  getBankStatement
+);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset", reset);
 router.post("/reset-password", resetPassword);
