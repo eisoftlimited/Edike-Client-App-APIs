@@ -415,6 +415,8 @@ const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
   const profileImage = req.file;
 
+  console.log(profileImage);
+
   if (!bvn) {
     throw new BadRequest("Enter Bank Verification Number");
   }
@@ -425,7 +427,7 @@ const verifyBVN = async (req, res) => {
     throw new BadRequest("Incomplete BVN Number");
   }
 
-  const result = await cloudinary.uploader.upload(profileImage.tempFilePath, {
+  const result = await cloudinary.uploader.upload(profileImage.path, {
     public_id: `${Date.now()}`,
     resource_type: "auto",
     folder: "Edike User Profile Image-BVN",
