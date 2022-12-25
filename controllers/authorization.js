@@ -768,10 +768,6 @@ const addBankStatement = async (req, res) => {
     throw new BadRequest("Enter Your 6months Bank Statement in pdf");
   }
 
-  const head = path.dirname(`${bank_file.path}`);
-  const tail = path.basename(`${bank_file.path}`);
-  let ans = `${head}` + "\\" + `${tail}`;
-
   const userbankStatement = await BankStatement.findOne({
     createdBy: req.user.id,
   });
@@ -795,7 +791,7 @@ const addBankStatement = async (req, res) => {
         analysisType: loan_access_type,
         fspId: bank_name,
         data: {
-          value: fs.createReadStream(`${ans}`),
+          value: fs.createReadStream(`${bank_file.path}`),
           options: {
             filename: `${bank_file.filename}`,
             contentType: "application/pdf",
