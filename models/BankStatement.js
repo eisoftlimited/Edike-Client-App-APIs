@@ -6,6 +6,10 @@ const BankStatementSchema = mongoose.Schema(
       type: String,
       required: [true, "Enter Bank Name"],
     },
+    loan_access_type: {
+      type: String,
+      required: [true, "Enter Loan Access Type"],
+    },
     bank_file: {
       type: Buffer,
     },

@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const { NotFound, BadRequest } = require("../errors");
+const Beneficiary = require("../models/Beneficiary");
 const Loan = require("../models/Loan");
 const User = require("../models/User");
 const cloudinary = require("cloudinary").v2;
@@ -13,50 +14,37 @@ const createLoan = async (req, res) => {
   const {
     params: { id: beneficiaryId },
   } = req;
-  const { beneficiary_file } = req.files;
-  const {
-    beneficiary_name,
-    beneficiary_amount,
-    beneficiary_duration,
-    bank_name,
-    loan_type,
-  } = req.body;
-  if (
-    !beneficiary_name ||
-    !beneficiary_duration ||
-    !beneficiary_amount ||
-    !bank_name ||
-    !loan_type
-  ) {
+  const beneficiary_file = req.files;
+  const { beneficiary_amount, beneficiary_duration } = req.body;
+  if (!beneficiary_duration || !beneficiary_amount) {
     throw new BadRequest("Enter all Fields");
   }
 
   if (!beneficiary_file) {
-    throw new BadRequest("Enter School Bill in PDF Format");
+    throw new BadRequest("Enter School Bill in the required formats");
   }
 
-  const result = await cloudinary.uploader.upload(
-    req.files.beneficiary_file.tempFilePath,
-    {
+  let multipleFileUpload = beneficiary_file.map((file) =>
+    cloudinary.uploader.upload(file.path, {
       public_id: `${Date.now()}`,
       resource_type: "raw",
-      folder: "Edike User School Bill",
-    }
+      folder: "Edike User Bill Credentials",
+    })
   );
+
+  let result = await Promise.all(multipleFileUpload);
+  const beneficiary = await Beneficiary.findOne({ _id: beneficiaryId });
+  if (!beneficiary) {
+    throw new BadRequest("No Beneficiary Found");
+  }
 
   const loan = await Loan.create({
     createdBy: req.user.id,
-    beneficiary_name: req.body.beneficiary_name,
-    loan_type: req.body.loan_type,
-    bank_name: req.body.bank_name,
     beneficiary_duration: req.body.beneficiary_duration,
     beneficiary_amount: req.body.beneficiary_amount,
-    beneficiary_file: result.secure_url,
-    etag: result.etag,
-    signature: result.signature,
-    publicID: result.public_id,
-    fileType: result.resource_type,
+    beneficiary_file_results: result,
     beneficiaryFor: beneficiaryId,
+    beneficiaryDetails: beneficiary,
   });
 
   await loan.save();
@@ -70,9 +58,19 @@ const createLoan = async (req, res) => {
 };
 
 const getAllLoans = async (req, res) => {
-  const loan = await Loan.find(req.loan).sort({
+  const loan = await Loan.find({
+    createdBy: req.user.id,
+  }).sort({
     date: -1,
   });
+  if (loan.length === 0) {
+    return res
+      .status(StatusCodes.OK)
+      .json({ msg: "No Loan has been applied for", status: "valid" });
+  }
+  if (!loan) {
+    throw new NotFound("Loan Not Found");
+  }
   res.status(StatusCodes.OK).json({ loan, length: loan.length });
 };
 

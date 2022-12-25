@@ -759,7 +759,7 @@ const listBank = async (req, res) => {
 };
 
 const addBankStatement = async (req, res) => {
-  const bank_file = req.files.bank_file;
+  const bank_file = req.file;
   const { bank_name, loan_access_type } = req.body;
   if (!bank_name || !loan_access_type) {
     throw new BadRequest("Enter all Fields");
@@ -768,8 +768,8 @@ const addBankStatement = async (req, res) => {
     throw new BadRequest("Enter Your 6months Bank Statement in pdf");
   }
 
-  const head = path.dirname(`${req.files.bank_file.tempFilePath}`);
-  const tail = path.basename(`${req.files.bank_file.tempFilePath}`);
+  const head = path.dirname(`${bank_file.path}`);
+  const tail = path.basename(`${bank_file.path}`);
   let ans = `${head}` + "\\" + `${tail}`;
 
   const userbankStatement = await BankStatement.findOne({
@@ -797,7 +797,7 @@ const addBankStatement = async (req, res) => {
         data: {
           value: fs.createReadStream(`${ans}`),
           options: {
-            filename: `${req.files.bank_file.name}`,
+            filename: `${bank_file.filename}`,
             contentType: "application/pdf",
           },
         },
@@ -813,6 +813,7 @@ const addBankStatement = async (req, res) => {
       const userBankStats = await BankStatement.create({
         createdBy: req.user.id,
         bank_name: req.body.bank_name,
+        loan_access_type: req.body.loan_access_type,
         bankCreds: trans,
       });
 
@@ -868,6 +869,15 @@ const getBankStatement = async (req, res) => {
       createdBy: id,
     });
     await userbankStatement.save();
+
+    const user = await User.findById({ _id: id });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ msg: "Unverified User", status: "invalid" });
+    }
+    user.isbankstatementadded = "pending";
+    await user.save();
 
     return res.status(400).json({
       msg: "Bank Statement , Please Add a New One",

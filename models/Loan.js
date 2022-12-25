@@ -2,42 +2,34 @@ const mongoose = require("mongoose");
 
 const LoanSchema = mongoose.Schema(
   {
-    beneficiary_name: {
-      type: String,
-      required: [true, "Enter Beneficiary Name"],
-    },
     beneficiary_amount: {
       type: Number,
       required: [true, "Enter an Amount "],
     },
     beneficiary_duration: {
-      type: String,
-      required: [true, "Enter Duration of Period "],
+      type: Number,
+      required: [true, "Enter Duration Period for Loan "],
     },
     beneficiary_file: {
       type: Buffer,
-      required: [true, "Enter School Bill Statement pdf"],
     },
-    etag: {
-      type: String,
-    },
-    signature: {
-      type: String,
-    },
-    publicID: {
-      type: String,
-    },
-    fileType: {
-      type: String,
+    beneficiary_file_results: {
+      type: Array,
     },
     date: {
       type: Date,
       default: Date.now,
     },
-    role: {
+     status: {
       type: String,
-      enum: ["ongoing", "pending", "declined", "completed"],
-      default: "ongoing",
+      enum: [
+        "pending",
+        "ongoing",
+        "pending_disbursement",
+        "declined",
+        "completed",
+      ],
+      default: "pending",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -48,6 +40,9 @@ const LoanSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Beneficiary",
       required: [true, "Please Provide a Beneficiary "],
+    },
+    beneficiaryDetails: {
+      type: Array,
     },
   },
   { timestamps: true }

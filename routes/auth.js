@@ -41,7 +41,12 @@ router.post(
   authenticationMiddleware,
   verifyBVN
 );
-router.post("/bank/bank-statement", authenticationMiddleware, addBankStatement);
+router.post(
+  "/bank/bank-statement",
+  upload.single("bank_file"),
+  authenticationMiddleware,
+  addBankStatement
+);
 router.get(
   "/bank/user-bank-statement",
   authenticationMiddleware,
