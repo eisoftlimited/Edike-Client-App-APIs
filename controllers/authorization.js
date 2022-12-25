@@ -856,7 +856,6 @@ const getBankStatement = async (req, res) => {
       msg: `Bank Statement Exist and is Valid till ${new Date(
         `${userbankStatement[0].sixMonths}`
       ).toDateString()}`,
-      userbankStatement,
       status: "valid",
     });
   }
@@ -876,7 +875,7 @@ const getBankStatement = async (req, res) => {
     await user.save();
 
     return res.status(400).json({
-      msg: "Bank Statement , Please Add a New One",
+      msg: "Bank Statement is Expired , Please Add a New One",
       status: "invalid",
     });
   }
