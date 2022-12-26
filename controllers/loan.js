@@ -24,6 +24,21 @@ const createLoan = async (req, res) => {
     throw new BadRequest("Enter School Bill in the required formats");
   }
 
+  const user = await User.findById({ _id: req.user.id });
+  if (!user) {
+    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
+  }
+
+  if (
+    user.isbankstatementadded === "pending" ||
+    user.isbvn === "pending" ||
+    user.isnin === "pending" ||
+    user.iscardadded === "pending" ||
+    user.isAccountVerified === "pending"
+  ) {
+    throw new BadRequest("Loan Application Declined, Please Complete KYC");
+  }
+
   let multipleFileUpload = beneficiary_file.map((file) =>
     cloudinary.uploader.upload(file.path, {
       public_id: `${Date.now()}`,
@@ -48,10 +63,6 @@ const createLoan = async (req, res) => {
   });
 
   await loan.save();
-  const user = await User.findById({ _id: req.user.id });
-  if (!user) {
-    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
-  }
   user.isappliedforloan = "approved";
   await user.save();
   return res.status(StatusCodes.CREATED).json({ loan, status: "valid" });
