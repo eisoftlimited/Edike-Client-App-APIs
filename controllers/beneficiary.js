@@ -20,8 +20,8 @@ const getAllBeneficiary = async (req, res) => {
   });
   if (beneficiary.length === 0) {
     return res
-      .status(StatusCodes.OK)
-      .json({ msg: "No Beneficiary Added", status: "valid" });
+      .status(400)
+      .json({ msg: "No Beneficiary Added", status: "invalid" });
   }
   if (!beneficiary) {
     throw new NotFound("No Beneficiary Found");

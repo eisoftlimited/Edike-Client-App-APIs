@@ -78,8 +78,8 @@ const getAllLoans = async (req, res) => {
   });
   if (loan.length === 0) {
     return res
-      .status(StatusCodes.OK)
-      .json({ msg: "No Loan has been applied for", status: "valid" });
+      .status(400)
+      .json({ msg: "No Loan has been applied for", status: "invalid" });
   }
   if (!loan) {
     throw new NotFound("Loan Not Found");
