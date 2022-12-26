@@ -30,42 +30,44 @@ const createLoan = async (req, res) => {
   }
 
   if (
-    user.isbankstatementadded === "pending" ||
-    user.isbvn === "pending" ||
-    user.isnin === "pending" ||
-    user.iscardadded === "pending" ||
-    user.isAccountVerified === "pending"
+    user.isbankstatementadded === "pending" &&
+    user.iscardadded === "pending" &&
+    user.isAccountVerified &&
+    "pending"
   ) {
     throw new BadRequest("Loan Application Declined, Please Complete KYC");
   }
 
-  let multipleFileUpload = beneficiary_file.map((file) =>
-    cloudinary.uploader.upload(file.path, {
-      public_id: `${Date.now()}`,
-      resource_type: "raw",
-      folder: "Edike User Bill Credentials",
-    })
-  );
-
-  let result = await Promise.all(multipleFileUpload);
   const beneficiary = await Beneficiary.findOne({ _id: beneficiaryId });
   if (!beneficiary) {
-    throw new BadRequest("No Beneficiary Found");
+    throw new BadRequest("No Beneficiary Found, Please Add Beneficiary");
   }
 
-  const loan = await Loan.create({
-    createdBy: req.user.id,
-    beneficiary_duration: req.body.beneficiary_duration,
-    beneficiary_amount: req.body.beneficiary_amount,
-    beneficiary_file_results: result,
-    beneficiaryFor: beneficiaryId,
-    beneficiaryDetails: beneficiary,
-  });
+  if (user.isbvn === "approved" || user.isnin === "approved") {
+    let multipleFileUpload = beneficiary_file.map((file) =>
+      cloudinary.uploader.upload(file.path, {
+        public_id: `${Date.now()}`,
+        resource_type: "raw",
+        folder: "Edike User Bill Credentials",
+      })
+    );
 
-  await loan.save();
-  user.isappliedforloan = "approved";
-  await user.save();
-  return res.status(StatusCodes.CREATED).json({ loan, status: "valid" });
+    let result = await Promise.all(multipleFileUpload);
+
+    const loan = await Loan.create({
+      createdBy: req.user.id,
+      beneficiary_duration: req.body.beneficiary_duration,
+      beneficiary_amount: req.body.beneficiary_amount,
+      beneficiary_file_results: result,
+      beneficiaryFor: beneficiaryId,
+      beneficiaryDetails: beneficiary,
+    });
+
+    await loan.save();
+    user.isappliedforloan = "approved";
+    await user.save();
+    return res.status(StatusCodes.CREATED).json({ loan, status: "valid" });
+  }
 };
 
 const getAllLoans = async (req, res) => {
