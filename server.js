@@ -72,7 +72,7 @@ const PORT = process.env.PORT;
 listEndPoints(app);
 const start = async () => {
   try {
-    await connectDatabase(process.env.MONGODBURL);
+    await connectDatabase(process.env.MONGODBURL_TEST);
     app.listen(PORT, () => console.log(`Server Listening at Port ${PORT}`));
   } catch (error) {
     console.log(error);
