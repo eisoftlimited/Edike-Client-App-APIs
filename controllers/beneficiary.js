@@ -1,20 +1,57 @@
 const { StatusCodes } = require("http-status-codes");
-const { NotFound, BadRequest } = require("../errors");
 const Beneficiary = require("../models/Beneficiary");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_APIKEY,
+  api_secret: process.env.CLOUDINARY_APISECRET,
+});
 
 const createBeneficiary = async (req, res) => {
   const { firstname, lastname, school, gender, dob, studentClass } = req.body;
+  const photo = req.file;
   if (!firstname || !lastname || !school || !gender || !dob || !studentClass) {
-    throw new BadRequest("Enter all Fields");
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
   }
-  req.body.createdBy = req.user.id;
-  const beneficiary = await Beneficiary.create(req.body);
+
+  if (!photo) {
+    return res.status(400).json({
+      msg: "Please Provide an Image",
+      status: "invalid",
+    });
+  }
+
+  const result = await cloudinary.uploader.upload(photo.path, {
+    public_id: `${Date.now()}`,
+    resource_type: "auto",
+    folder: "Edike User Beneficiary Image",
+  });
+
+  const beneficiary = await Beneficiary.create({
+    createdBy: req.user.id,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+    school: req.body.school,
+    gender: req.body.gender,
+    dob: req.body.dob,
+    studentClass: req.body.studentClass,
+    beneficiaryImage: result.secure_url,
+    beneficiaryPubicId: result.public_id,
+  });
+
   res.status(StatusCodes.CREATED).json({ beneficiary });
 };
 
 const getAllBeneficiary = async (req, res) => {
+  const {
+    user: { id },
+  } = req;
   const beneficiary = await Beneficiary.find({
-    createdBy: req.user.id,
+    createdBy: id,
   }).sort({
     date: -1,
   });
@@ -24,7 +61,10 @@ const getAllBeneficiary = async (req, res) => {
       .json({ msg: "No Beneficiary Added", status: "invalid" });
   }
   if (!beneficiary) {
-    throw new NotFound("No Beneficiary Found");
+    return res.status(400).json({
+      msg: "No Beneficiary Found",
+      status: "invalid",
+    });
   }
   res.status(StatusCodes.OK).json({ beneficiary, length: beneficiary.length });
 };
@@ -37,7 +77,10 @@ const updateBeneficiary = async (req, res) => {
   } = req;
 
   if (!firstname || !lastname || !school || !gender || !dob || !studentClass) {
-    throw new BadRequest("Enter all Fields");
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
   }
 
   const beneficiary = await Beneficiary.findByIdAndUpdate(
@@ -50,7 +93,10 @@ const updateBeneficiary = async (req, res) => {
   );
 
   if (!beneficiary) {
-    throw new NotFound("Beneficiary does not exist");
+    return res.status(400).json({
+      msg: "Beneficiary does not exist",
+      status: "invalid",
+    });
   }
 
   res.status(StatusCodes.OK).send(beneficiary);
@@ -68,7 +114,10 @@ const getBeneficiary = async (req, res) => {
   });
 
   if (!beneficiary) {
-    throw new NotFound("Beneficiary does not exist");
+    return res.status(400).json({
+      msg: "Beneficiary does not exist",
+      status: "invalid",
+    });
   }
 
   res.status(StatusCodes.OK).send(beneficiary);
@@ -86,8 +135,13 @@ const deleteBeneficiary = async (req, res) => {
   });
 
   if (!beneficiary) {
-    throw new NotFound("Beneficiary does not exist");
+    return res.status(400).json({
+      msg: "Beneficiary does not exist",
+      status: "invalid",
+    });
   }
+
+  await cloudinary.uploader.destroy(`${beneficiary.beneficiaryPubicId}`);
 
   res
     .status(StatusCodes.OK)

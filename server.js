@@ -12,11 +12,9 @@ const uploadsDirectory = __dirname + "/uploads";
 const path = require("path");
 
 const app = express();
-// Error Handlers
 const notFound = require("./middlewares/not-found");
 const errorHandler = require("./middlewares/error-handler");
 
-// INITIALIZING MIDDLEWARE
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
@@ -27,7 +25,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// DEFINED ROUTES
 app.get("/", (req, res) => {
   res.send("Edike Loan App");
 });
@@ -36,13 +33,14 @@ const authRouters = require("./routes/auth");
 const beneficiaryRouters = require("./routes/beneficiary");
 const cardRouters = require("./routes/card");
 const loanRouters = require("./routes/loan");
+const transactionRouter = require("./routes/transaction");
 
 app.use("/edike/api/v1/auth", authRouters);
 app.use("/edike/api/v1/beneficiary", beneficiaryRouters);
 app.use("/edike/api/v1/card", cardRouters);
 app.use("/edike/api/v1/loan", loanRouters);
+app.use("/edike/api/v1/paystack", transactionRouter);
 
-// app.edikeeduloan@edike.ng
 app.use(notFound);
 app.use(errorHandler);
 
@@ -82,7 +80,3 @@ const start = async () => {
 };
 
 start();
-
-// 1746f1089e89a8b0a0c7bef9a217e08a
-// sandboxa04ebd2debe241a186f206f7b1442faf.mailgun.org
-// hello

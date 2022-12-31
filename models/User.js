@@ -5,8 +5,13 @@ const UserSchema = new mongoose.Schema(
   {
     role: {
       type: String,
-      enum: ["regular", "admin", "risk_management", "cfo"],
+      enum: ["regular", "system", "cfo", "cto", "ad"],
       default: "regular",
+    },
+    status: {
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
     },
     firstname: {
       type: String,
@@ -39,6 +44,7 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Enter your Phone Number"],
       minlength: 4,
       maxlength: 11,
+      unique: true,
     },
     phoneNumber1: {
       type: Number,
@@ -54,9 +60,11 @@ const UserSchema = new mongoose.Schema(
     },
     bvn: {
       type: Number,
+      unique: true,
     },
     nin: {
       type: Number,
+      unique: true,
     },
     profileImage: {
       type: String,
@@ -129,6 +137,12 @@ const UserSchema = new mongoose.Schema(
     },
     iscardadded: {
       type: String,
+    },
+    isidcard: {
+      type: String,
+    },
+    idcard: {
+      type: Array,
     },
     isbankstatementadded: {
       type: String,

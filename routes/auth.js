@@ -20,9 +20,12 @@ const {
   resendResetPasswordOTP,
   addBankStatement,
   getBankStatement,
+  uploadIDCard,
+  checkAccountStatus,
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
+router.get("/user/status", authenticationMiddleware, checkAccountStatus);
 router.post("/resend/otp", resendOTP);
 router.post("/resend/resetpass/otp", resendResetPasswordOTP);
 router.get("/list/bankCode", listBank);
@@ -47,6 +50,14 @@ router.post(
   authenticationMiddleware,
   addBankStatement
 );
+
+router.post(
+  "/upload/id_card",
+  upload.single("img"),
+  authenticationMiddleware,
+  uploadIDCard
+);
+
 router.get(
   "/bank/user-bank-statement",
   authenticationMiddleware,

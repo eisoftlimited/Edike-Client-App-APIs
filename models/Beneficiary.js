@@ -26,7 +26,12 @@ const BeneficiarySchema = mongoose.Schema(
       type: String,
       required: [true, "Enter a Date of Birth "],
     },
-
+    beneficiaryImage: {
+      type: String,
+    },
+    beneficiaryPubicId: {
+      type: String,
+    },
     date: {
       type: Date,
       default: Date.now,

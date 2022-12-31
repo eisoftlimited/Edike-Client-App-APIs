@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
-const CardSchema = mongoose.Schema(
+const TransactionSchema = mongoose.Schema(
   {
-    card: {
-      type: Array,
-    },
     date: {
       type: Date,
       default: Date.now,
@@ -12,10 +9,10 @@ const CardSchema = mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
-      required: [true, "Please Provide a Card "],
+      required: [true, "Please Start a Transaction "],
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Card", CardSchema);
+module.exports = mongoose.model("Transaction", TransactionSchema);

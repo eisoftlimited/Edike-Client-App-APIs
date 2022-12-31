@@ -16,14 +16,33 @@ const LoanSchema = mongoose.Schema(
     beneficiary_file_results: {
       type: Array,
     },
+    bankCreds: {
+      type: Array,
+    },
     date: {
       type: Date,
       default: Date.now,
     },
-     status: {
+    startsTime: {
+      type: String,
+    },
+    endsTime: {
+      type: String,
+    },
+    accessTime: {
+      type: String,
+    },
+    possibleTime: {
+      type: String,
+    },
+    goodTime: {
+      type: String,
+    },
+    status: {
       type: String,
       enum: [
         "pending",
+        "pending_approval",
         "ongoing",
         "pending_disbursement",
         "declined",
@@ -42,6 +61,9 @@ const LoanSchema = mongoose.Schema(
       required: [true, "Please Provide a Beneficiary "],
     },
     beneficiaryDetails: {
+      type: Array,
+    },
+    cardDetails: {
       type: Array,
     },
   },

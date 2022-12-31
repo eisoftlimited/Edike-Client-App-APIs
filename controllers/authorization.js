@@ -1,14 +1,13 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
-const { BadRequest, UnAuthenticated } = require("../errors");
 const mailgun = require("mailgun-js");
 const bcrypt = require("bcryptjs");
 const DOMAIN = process.env.MAILGUN_SERVER;
 const { generateOTP, convertBase } = require("../utilities/otp");
 const cloudinary = require("cloudinary").v2;
 const request = require("request");
-const path = require("path");
+const date = new Date().getUTCFullYear();
 const fs = require("fs");
 const BankStatement = require("../models/BankStatement");
 
@@ -22,15 +21,33 @@ const registerEmail = async (req, res) => {
   const { email, password, firstname, lastname, phone } = req.body;
 
   if (!email || !password || !firstname || !lastname || !phone) {
-    throw new BadRequest("Enter all Fields");
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
   }
   if (phone.length !== 11) {
-    throw new BadRequest("Invalid Phone Number");
+    return res.status(400).json({
+      msg: "Incomplete Phone Number",
+      status: "invalid",
+    });
   }
 
   const user = await User.findOne({ email });
+  const userPhone = await User.findOne({ phone });
+
   if (user) {
-    throw new UnAuthenticated("Email Already Exist");
+    return res.status(400).json({
+      msg: "Email Already Exist",
+      status: "invalid",
+    });
+  }
+
+  if (userPhone) {
+    return res.status(400).json({
+      msg: "Phone Number Already Exist",
+      status: "invalid",
+    });
   }
 
   const salt = await bcrypt.genSaltSync(10);
@@ -44,7 +61,12 @@ const registerEmail = async (req, res) => {
     to: email,
     subject: "Edike Account Activation",
     html: `
-      <body style="padding:2px 4px; font-weight:400">
+      <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
+      <body style="padding:2px 4px; font-weight:400 color:white;">
         <div style="padding:10px 0px; text-align: center">
         <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
         </div>
@@ -79,8 +101,9 @@ const registerEmail = async (req, res) => {
           </div>
         </div>
         </div>
-        <div>
-        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
         </div>
       </body>
     `,
@@ -89,6 +112,7 @@ const registerEmail = async (req, res) => {
     if (error) {
       return res.status(400).json({
         msg: error.message,
+        status: "invalid",
       });
     }
 
@@ -111,6 +135,7 @@ const registerEmail = async (req, res) => {
     isappliedforloan: "pending",
     iscardadded: "pending",
     isbankstatementadded: "pending",
+    isidcard: "pending",
   });
 
   await newUser.save();
@@ -119,11 +144,17 @@ const registerEmail = async (req, res) => {
 const resendOTP = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    throw new BadRequest("Kindly Enter your Email Account with us");
+    return res.status(400).json({
+      msg: "Kindly Enter your Email Account with us",
+      status: "invalid",
+    });
   }
   const user = await User.findOne({ email });
   if (!user) {
-    throw new UnAuthenticated("Invalid Email Address");
+    return res.status(400).json({
+      msg: "Invalid Email Address",
+      status: "invalid",
+    });
   }
   const otp = generateOTP();
 
@@ -136,6 +167,11 @@ const resendOTP = async (req, res) => {
     to: user.email,
     subject: "Edike Account Activation",
     html: `
+      <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
       <body style="padding:2px 4px; font-weight:400">
         <div style="padding:10px 0px; text-align: center">
         <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
@@ -171,8 +207,9 @@ const resendOTP = async (req, res) => {
           </div>
         </div>
         </div>
-        <div>
-        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
         </div>
       </body>
     `,
@@ -181,6 +218,7 @@ const resendOTP = async (req, res) => {
     if (error) {
       return res.status(400).json({
         msg: error.message,
+        status: "invalid",
       });
     }
 
@@ -194,11 +232,17 @@ const resendOTP = async (req, res) => {
 const resendResetPasswordOTP = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    throw new BadRequest("Kindly Enter your Email Account with us");
+    return res.status(400).json({
+      msg: "Kindly Enter your Email Account with us",
+      status: "invalid",
+    });
   }
   const user = await User.findOne({ email });
   if (!user) {
-    throw new UnAuthenticated("Invalid Email Address");
+    return res.status(400).json({
+      msg: "Invalid Email Credentials",
+      status: "invalid",
+    });
   }
   const otp = generateOTP();
   user.resetPasswordToken = otp;
@@ -210,6 +254,11 @@ const resendResetPasswordOTP = async (req, res) => {
     to: user.email,
     subject: "Edike Reset Password",
     html: `
+      <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
       <body style="padding:2px 4px; font-weight:400">
         <div style="padding:10px 0px; text-align: center">
         <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
@@ -245,8 +294,9 @@ const resendResetPasswordOTP = async (req, res) => {
           </div>
         </div>
         </div>
-        <div>
-        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
         </div>
       </body>
     `,
@@ -255,6 +305,7 @@ const resendResetPasswordOTP = async (req, res) => {
     if (error) {
       return res.status(400).json({
         msg: error.message,
+        status: "invalid",
       });
     }
 
@@ -268,22 +319,34 @@ const resendResetPasswordOTP = async (req, res) => {
 const loginEmail = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    throw new BadRequest("Enter Email and Password");
+    return res.status(400).json({
+      msg: "Enter Email and Password",
+      status: "invalid",
+    });
   }
 
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new UnAuthenticated("Invalid Email Credentials");
+    return res.status(400).json({
+      msg: "Invalid Email Credentials",
+      status: "invalid",
+    });
   }
 
   const isPasswordCorrect = await user.comparePassword(password);
   if (!isPasswordCorrect) {
-    throw new UnAuthenticated("Invalid Password Credentials");
+    return res.status(400).json({
+      msg: "Invalid Password Credentials",
+      status: "invalid",
+    });
   }
 
   if (user.isAccountVerified === "pending") {
-    throw new UnAuthenticated("Kindly Verify your Account, Check Your Mail");
+    return res.status(400).json({
+      msg: "Kindly Verify your Account, Check Your Mail",
+      status: "invalid",
+    });
   }
 
   const useful = await User.find({ email }).select("-password");
@@ -307,8 +370,10 @@ const loadUser = async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
     return res.status(StatusCodes.OK).json(user);
   } catch (err) {
-    console.error(err.message);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send("Server Error");
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Server Error",
+      status: "invalid",
+    });
   }
 };
 
@@ -316,14 +381,32 @@ const verifyNIN = async (req, res) => {
   const { nin } = req.body;
   const profileImage = req.file;
 
+  const userNIN = await User.findOne({ nin });
+
+  if (userNIN) {
+    return res.status(400).json({
+      msg: "Invalid, NIN Already Exist",
+      status: "invalid",
+    });
+  }
+
   if (!nin) {
-    throw new BadRequest("Enter Nigerian Identification Number");
+    return res.status(400).json({
+      msg: "Enter Nigerian Identification Number",
+      status: "invalid",
+    });
   }
   if (!profileImage) {
-    throw new BadRequest("Please Provide an Image");
+    return res.status(400).json({
+      msg: "Please Provide an Image",
+      status: "invalid",
+    });
   }
   if (nin.length !== 11) {
-    throw new BadRequest("Incomplete NIN Number");
+    return res.status(400).json({
+      msg: "Incomplete NIN Number",
+      status: "invalid",
+    });
   }
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -331,10 +414,10 @@ const verifyNIN = async (req, res) => {
     api_secret: process.env.CLOUDINARY_APISECRET,
   });
 
-  const result = await cloudinary.uploader.upload(profileImage.tempFilePath, {
+  const result = await cloudinary.uploader.upload(profileImage.path, {
     public_id: `${Date.now()}`,
     resource_type: "auto",
-    folder: "Edike User Profile Image- NIN",
+    folder: "Edike User Profile Image-NIN",
   });
 
   const buff = await convertBase(result.secure_url);
@@ -365,7 +448,7 @@ const verifyNIN = async (req, res) => {
       return res.status(400).json({
         response,
         body,
-        msg: "BVN Verification Service Unavailable",
+        msg: "NIN Verification Service Unavailable, Please Use BVN to Continue Verification",
         status: "invalid",
       });
     }
@@ -415,14 +498,32 @@ const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
   const profileImage = req.file;
 
+  const userBVN = await User.findOne({ bvn });
+
+  if (userBVN) {
+    return res.status(400).json({
+      msg: "Invalid, BVN Already Exist",
+      status: "invalid",
+    });
+  }
+
   if (!bvn) {
-    throw new BadRequest("Enter Bank Verification Number");
+    return res.status(400).json({
+      msg: "Enter Bank Verification Number",
+      status: "invalid",
+    });
   }
   if (!profileImage) {
-    throw new BadRequest("Please Provide an Image");
+    return res.status(400).json({
+      msg: "Please Provide an Image",
+      status: "invalid",
+    });
   }
   if (bvn.length !== 11) {
-    throw new BadRequest("Incomplete BVN Number");
+    return res.status(400).json({
+      msg: "Incomplete BVN Number",
+      status: "invalid",
+    });
   }
 
   const result = await cloudinary.uploader.upload(profileImage.path, {
@@ -459,7 +560,7 @@ const verifyBVN = async (req, res) => {
       return res.status(400).json({
         response,
         body,
-        msg: "BVN Verification Service Unavailable",
+        msg: "BVN Verification Service Unavailable, Please Use NIN to Continue Verification",
         status: "invalid",
       });
     }
@@ -525,7 +626,10 @@ const verifyBVN = async (req, res) => {
 const activateAccount = async (req, res) => {
   const { otpToken } = req.body;
   if (!otpToken) {
-    throw new BadRequest("Enter Otp Code");
+    return res.status(400).json({
+      msg: "Enter Otp Code",
+      status: "invalid",
+    });
   }
 
   User.findOne({
@@ -566,14 +670,17 @@ const activateAccount = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    throw new BadRequest("Enter Email Address");
+    return res.status(400).json({
+      msg: "Enter Email Address",
+      status: "invalid",
+    });
   }
   User.findOne({ email: req.body.email })
     .then((user) => {
       if (!user)
         return res.status(401).json({
           msg: "Invalid Email Address",
-          staus: "invalid",
+          status: "invalid",
         });
 
       const otp = generateOTP();
@@ -590,6 +697,11 @@ const forgotPassword = async (req, res) => {
             to: email,
             subject: "Edike Reset Password",
             html: `
+            <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
        <body style="padding:2px 4px; font-weight:400">
         <div style="padding:10px 0px; text-align: center">
         <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
@@ -627,8 +739,9 @@ const forgotPassword = async (req, res) => {
           </div>
         </div>
         </div>
-        <div>
-        <p> Copyright <a href="https://edike.ng" style="color:white;">www.edike.ng</a>, All Rights Reserved</p>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
         </div>
       </body>
              `,
@@ -660,7 +773,10 @@ const reset = async (req, res) => {
   const { otp } = req.body;
 
   if (!otp) {
-    throw new BadRequest("Enter the OTP code");
+    return res.status(400).json({
+      msg: "Enter the OTP Code",
+      status: "invalid",
+    });
   }
 
   User.findOne({
@@ -685,7 +801,10 @@ const reset = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    throw new BadRequest("Enter All Fields");
+    return res.status(400).json({
+      msg: "Enter All Fields",
+      status: "invalid",
+    });
   }
 
   const salt = await bcrypt.genSaltSync(10);
@@ -719,7 +838,10 @@ const profileUpdate = async (req, res) => {
   } = req;
 
   if (!firstname || !lastname || !phone) {
-    throw new BadRequest("Enter all Fields");
+    return res.status(400).json({
+      msg: "Enter All Fields",
+      status: "invalid",
+    });
   }
   const user = await User.findByIdAndUpdate(
     {
@@ -730,13 +852,13 @@ const profileUpdate = async (req, res) => {
   );
 
   if (!user) {
-    throw new NotFound("Something went wrong");
+    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
   }
 
   return res.status(StatusCodes.OK).json({
     user,
     msg: "Profile Update Successful",
-    staus: "valid",
+    status: "valid",
   });
 };
 
@@ -752,7 +874,13 @@ const listBank = async (req, res) => {
   };
 
   request(options, function (error, body) {
-    if (error) throw new BadRequest(error);
+    if (error) {
+      return res.status(400).json({
+        msg: `${error.message}`,
+        status: "invalid",
+      });
+    }
+
     const ans = JSON.parse(body.body);
     res.status(StatusCodes.OK).send({ msg: ans, status: "valid" });
   });
@@ -762,15 +890,17 @@ const addBankStatement = async (req, res) => {
   const bank_file = req.file;
   const { bank_name, loan_access_type } = req.body;
   if (!bank_name || !loan_access_type) {
-    throw new BadRequest("Enter all Fields");
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
   }
   if (!bank_file) {
-    throw new BadRequest("Enter Your 6months Bank Statement in pdf");
+    return res.status(400).json({
+      msg: "Enter Your 6months Bank Statement in Pdf format",
+      status: "invalid",
+    });
   }
-
-  // const head = path.dirname(`${bank_file.path}`);
-  // const tail = path.basename(`${bank_file.path}`);
-  // let ans = `${head}` + "\\" + `${tail}`;
 
   const userbankStatement = await BankStatement.findOne({
     createdBy: req.user.id,
@@ -806,7 +936,9 @@ const addBankStatement = async (req, res) => {
 
     request(options, async function (error, body) {
       if (error) {
-        return res.status(400).json({ error });
+        return res
+          .status(400)
+          .json({ msg: `${error.message}`, status: "invalid" });
       }
       const trans = JSON.parse(body.body);
 
@@ -844,7 +976,9 @@ const getBankStatement = async (req, res) => {
   });
 
   if (!userbankStatement) {
-    throw new NotFound("Bank Statement is Not Found");
+    return res
+      .status(400)
+      .json({ msg: "Bank Statement is not found", status: "invalid" });
   }
 
   var diff =
@@ -885,6 +1019,62 @@ const getBankStatement = async (req, res) => {
   }
 };
 
+const uploadIDCard = async (req, res) => {
+  const photo = req.file;
+  if (!photo) {
+    return res.status(400).json({
+      msg: "Please Provide an Image",
+      status: "invalid",
+    });
+  }
+
+  const user = await User.findById({ _id: req.user.id });
+  if (user.isidcard === "approved") {
+    return res.status(400).json({
+      msg: "ID Card Exist Already",
+      status: "invalid",
+    });
+  }
+
+  const result = await cloudinary.uploader.upload(photo.path, {
+    public_id: `${Date.now()}`,
+    resource_type: "auto",
+    folder: "Edike User ID Card Image",
+  });
+
+  if (!user) {
+    cloudinary.uploader.destroy(`${result.public_id}`);
+    return res.status(400).json({
+      msg: "Not Authorized",
+      status: "invalid",
+    });
+  }
+  user.isidcard = "approved";
+  user.idcard = result;
+  await user.save();
+
+  return res.status(200).json({
+    msg: "ID Card Upload Successful",
+    status: "valid",
+  });
+};
+
+const checkAccountStatus = async () => {
+  const user = await User.findById({ _id: req.user.id });
+
+  if (user.status === "blocked") {
+    return res.status(200).json({
+      msg: "Your Account has been Temporarily Disabled, Please Contact Support",
+    });
+  }
+
+  if (user.status === "active") {
+    return res.status(200).json({
+      msg: "",
+    });
+  }
+};
+
 module.exports = {
   registerEmail,
   loginEmail,
@@ -901,4 +1091,6 @@ module.exports = {
   resendResetPasswordOTP,
   addBankStatement,
   getBankStatement,
+  uploadIDCard,
+  checkAccountStatus,
 };
