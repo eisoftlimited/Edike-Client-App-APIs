@@ -45,7 +45,7 @@ const registerEmail = async (req, res) => {
 
   if (userPhone) {
     return res.status(400).json({
-      msg: "Phone Number Already Exist",
+      msg: "User with this Phone Number Already Exist",
       status: "invalid",
     });
   }
@@ -381,15 +381,6 @@ const verifyNIN = async (req, res) => {
   const { nin } = req.body;
   const profileImage = req.file;
 
-  const userNIN = await User.findOne({ nin });
-
-  if (userNIN) {
-    return res.status(400).json({
-      msg: "Invalid, NIN Already Exist",
-      status: "invalid",
-    });
-  }
-
   if (!nin) {
     return res.status(400).json({
       msg: "Enter Nigerian Identification Number",
@@ -497,15 +488,6 @@ const verifyNIN = async (req, res) => {
 const verifyBVN = async (req, res) => {
   const { bvn } = req.body;
   const profileImage = req.file;
-
-  const userBVN = await User.findOne({ bvn });
-
-  if (userBVN) {
-    return res.status(400).json({
-      msg: "Invalid, BVN Already Exist",
-      status: "invalid",
-    });
-  }
 
   if (!bvn) {
     return res.status(400).json({

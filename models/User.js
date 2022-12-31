@@ -44,7 +44,6 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Enter your Phone Number"],
       minlength: 4,
       maxlength: 11,
-      unique: true,
     },
     phoneNumber1: {
       type: Number,
@@ -60,11 +59,9 @@ const UserSchema = new mongoose.Schema(
     },
     bvn: {
       type: Number,
-      unique: true,
     },
     nin: {
       type: Number,
-      unique: true,
     },
     profileImage: {
       type: String,
