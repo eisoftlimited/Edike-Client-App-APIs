@@ -38,6 +38,27 @@ const LoanSchema = mongoose.Schema(
     goodTime: {
       type: String,
     },
+    lastPayment: {
+      type: String,
+    },
+    nextPayment: {
+      type: String,
+    },
+    interestRate: {
+      type: String,
+    },
+    totalPayback: {
+      type: String,
+    },
+    paymentBalance: {
+      type: String,
+    },
+    paymentDate: {
+      type: String,
+    },
+    dateDisbursed: {
+      type: String,
+    },
     status: {
       type: String,
       enum: [
