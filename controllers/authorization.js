@@ -924,6 +924,12 @@ const addBankStatement = async (req, res) => {
     //   }
     // const trans = JSON.parse(body.body);
     const trans = fs.readFileSync(`${bank_file.path}`, { encoding: "base64" });
+    const user = await User.findById({ _id: req.user.id });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ msg: "Unverified User", status: "invalid" });
+    }
 
     const userBankStats = await BankStatement.create({
       createdBy: req.user.id,
@@ -933,12 +939,6 @@ const addBankStatement = async (req, res) => {
     });
 
     await userBankStats.save();
-    const user = await User.findById({ _id: req.user.id });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ msg: "Unverified User", status: "invalid" });
-    }
     user.isbankstatementadded = "approved";
     await user.save();
     return res.status(StatusCodes.CREATED).json({
