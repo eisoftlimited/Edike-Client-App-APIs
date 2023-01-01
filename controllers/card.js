@@ -39,7 +39,15 @@ const verifyCard = async (req, res) => {
         .status(400)
         .json({ msg: `${error.message}`, status: "invalid" });
     }
+
     const response = JSON.parse(body.body);
+    if (response.data.authorization.bin.length < 1) {
+      return res.status(400).json({
+        msg: `Card Not Verified, Please Try Again`,
+        status: "invalid",
+      });
+    }
+
     const user = await User.findById({ _id: req.user.id });
     if (!user) {
       return res
@@ -51,6 +59,7 @@ const verifyCard = async (req, res) => {
       createdBy: req.user.id,
       card: response.data.authorization,
     });
+
     await card.save();
     user.iscardadded = "approved";
     await user.save();
@@ -76,7 +85,7 @@ const getCard = async (req, res) => {
     });
   }
 
-  if (card.card.length === 0) {
+  if (card.length === 0) {
     const suspect1 = await Card.findByIdAndDelete({
       createdBy: id,
     });
