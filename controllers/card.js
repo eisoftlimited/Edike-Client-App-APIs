@@ -90,11 +90,11 @@ const getCard = async (req, res) => {
       createdBy: id,
     });
 
-    await suspect1.save();
-
     const suspect2 = await User.findById({
       _id: req.user.id,
     });
+
+    await suspect1.save();
 
     suspect2.iscardadded = "pending";
     await suspect2.save();

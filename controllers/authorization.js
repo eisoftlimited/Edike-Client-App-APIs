@@ -895,56 +895,58 @@ const addBankStatement = async (req, res) => {
   }
 
   if (!userbankStatement) {
-    const options = {
-      method: "POST",
-      url: "https://prod-categorization-service.pub.credrails.com/v1alpha2/analyseAccountStatement?view=detailed",
-      headers: {
-        accept: "application/json",
-        "content-type": "multipart/form-data",
-        "X-API-KEY": process.env.CREDRAILS_KEY,
-      },
-      formData: {
-        analysisType: loan_access_type,
-        fspId: bank_name,
-        data: {
-          value: fs.createReadStream(`${bank_file.path}`),
-          options: {
-            filename: `${bank_file.filename}`,
-            contentType: "application/pdf",
-          },
-        },
-      },
-    };
+    // const options = {
+    //   method: "POST",
+    //   url: "https://prod-categorization-service.pub.credrails.com/v1alpha2/analyseAccountStatement?view=detailed",
+    //   headers: {
+    //     accept: "application/json",
+    //     "content-type": "multipart/form-data",
+    //     "X-API-KEY": process.env.CREDRAILS_KEY,
+    //   },
+    //   formData: {
+    //     analysisType: loan_access_type,
+    //     fspId: bank_name,
+    //     data: {
+    //       value: fs.createReadStream(`${bank_file.path}`),
+    //       options: {
+    //         filename: `${bank_file.filename}`,
+    //         contentType: "application/pdf",
+    //       },
+    //     },
+    //   },
+    // };
 
-    request(options, async function (error, body) {
-      if (error) {
-        return res
-          .status(400)
-          .json({ msg: `${error.message}`, status: "invalid" });
-      }
-      const trans = JSON.parse(body.body);
+    // request(options, async function (error, body) {
+    //   if (error) {
+    //     return res
+    //       .status(400)
+    //       .json({ msg: `${error.message}`, status: "invalid" });
+    //   }
+    // const trans = JSON.parse(body.body);
+    const trans = fs.readFileSync(`${bank_file.path}`, { encoding: "base64" });
 
-      const userBankStats = await BankStatement.create({
-        createdBy: req.user.id,
-        bank_name: req.body.bank_name,
-        loan_access_type: req.body.loan_access_type,
-        bankCreds: trans,
-      });
-
-      await userBankStats.save();
-      const user = await User.findById({ _id: req.user.id });
-      if (!user) {
-        return res
-          .status(400)
-          .json({ msg: "Unverified User", status: "invalid" });
-      }
-      user.isbankstatementadded = "approved";
-      await user.save();
-      return res.status(StatusCodes.CREATED).json({
-        msg: "Bank Statement Verification Successful",
-        status: "valid",
-      });
+    const userBankStats = await BankStatement.create({
+      createdBy: req.user.id,
+      bank_name: req.body.bank_name,
+      loan_access_type: req.body.loan_access_type,
+      bankPdf: trans,
     });
+
+    await userBankStats.save();
+    const user = await User.findById({ _id: req.user.id });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ msg: "Unverified User", status: "invalid" });
+    }
+    user.isbankstatementadded = "approved";
+    await user.save();
+    return res.status(StatusCodes.CREATED).json({
+      msg: "Bank Statement Verification Successful",
+      status: "valid",
+    });
+
+    // });
   }
 };
 

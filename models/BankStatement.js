@@ -22,6 +22,9 @@ const BankStatementSchema = mongoose.Schema(
       default: Date.now,
     },
     bankCreds: { type: Array, default: [] },
+    bankPdf: {
+      type: String,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
