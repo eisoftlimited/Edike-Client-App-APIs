@@ -930,7 +930,6 @@ const addBankStatement = async (req, res) => {
         .status(400)
         .json({ msg: "Unverified User", status: "invalid" });
     }
-
     const userBankStats = await BankStatement.create({
       createdBy: req.user.id,
       bank_name: req.body.bank_name,

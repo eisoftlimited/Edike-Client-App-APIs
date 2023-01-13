@@ -30,7 +30,7 @@ const LoanSchema = mongoose.Schema(
       type: String,
     },
     accessTime: {
-      type: String,
+      type: Number,
     },
     possibleTime: {
       type: String,
@@ -68,6 +68,7 @@ const LoanSchema = mongoose.Schema(
         "pending_disbursement",
         "declined",
         "completed",
+        "defaulted",
       ],
       default: "pending",
     },
