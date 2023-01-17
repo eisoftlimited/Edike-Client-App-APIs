@@ -30,6 +30,9 @@ const BankStatementSchema = mongoose.Schema(
       ref: "Users",
       required: [true, "Please Provide a Bank Statement "],
     },
+    pdf_link: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

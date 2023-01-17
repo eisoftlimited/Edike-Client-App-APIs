@@ -935,6 +935,7 @@ const addBankStatement = async (req, res) => {
       bank_name: req.body.bank_name,
       loan_access_type: req.body.loan_access_type,
       bankPdf: trans,
+      pdf_link: req.body.pdf_link,
     });
 
     await userBankStats.save();
