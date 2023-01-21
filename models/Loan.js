@@ -88,6 +88,9 @@ const LoanSchema = mongoose.Schema(
     cardDetails: {
       type: Array,
     },
+    pdf: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

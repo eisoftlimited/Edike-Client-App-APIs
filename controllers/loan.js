@@ -288,6 +288,7 @@ const createLoan = async (req, res) => {
       beneficiaryDetails: beneficiary,
       cardDetails: card,
       bankCreds: userbankStatement[0].bankCreds,
+      pdf: userbankStatement[0].pdf_link,
     });
 
     await loan.save();
