@@ -91,6 +91,12 @@ const LoanSchema = mongoose.Schema(
     pdf: {
       type: String,
     },
+     adminComment: {
+      type: String,
+    },
+    riskComment: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
