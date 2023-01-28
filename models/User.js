@@ -144,6 +144,12 @@ const UserSchema = new mongoose.Schema(
     isbankstatementadded: {
       type: String,
     },
+    houseAddress: {
+      type: String,
+    },
+    houseAddressLink: {
+      type: Array,
+    },
   },
   { timestamps: true }
 );

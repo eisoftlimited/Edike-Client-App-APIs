@@ -22,6 +22,7 @@ const {
   getBankStatement,
   uploadIDCard,
   checkAccountStatus,
+  createAddressBill,
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
@@ -67,5 +68,11 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset", reset);
 router.post("/reset-password", resetPassword);
 router.patch("/user/update/profile", authenticationMiddleware, profileUpdate);
+router.post(
+  "/user/address",
+  upload.array("houseAddressLink", 10),
+  authenticationMiddleware,
+  createAddressBill
+);
 
 module.exports = router;

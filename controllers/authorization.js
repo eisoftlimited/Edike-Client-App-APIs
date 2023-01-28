@@ -1059,6 +1059,46 @@ const checkAccountStatus = async () => {
   }
 };
 
+const createAddressBill = async (req, res) => {
+  const houseAddressLink = req.files;
+  const { houseAddress } = req.body;
+  if (!houseAddress) {
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
+  }
+
+  if (!houseAddressLink) {
+    return res.status(400).json({
+      msg: "Enter Address Bill in the required Image format",
+      status: "invalid",
+    });
+  }
+
+  const user = await User.findById({ _id: req.user.id });
+  if (!user) {
+    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
+  }
+
+  let multipleFileUpload = beneficiary_file.map((file) =>
+    cloudinary.uploader.upload(file.path, {
+      public_id: `${Date.now()}`,
+      resource_type: "auto",
+      folder: "Edike User Location Bill Credentials",
+    })
+  );
+
+  let result = await Promise.all(multipleFileUpload);
+
+  user.houseAddress = houseAddress;
+  user.houseAddressLink = result;
+  await user.save();
+  return res
+    .status(200)
+    .json({ msg: "Address Verification Successful", status: "valid" });
+};
+
 module.exports = {
   registerEmail,
   loginEmail,
@@ -1077,4 +1117,5 @@ module.exports = {
   getBankStatement,
   uploadIDCard,
   checkAccountStatus,
+  createAddressBill,
 };
