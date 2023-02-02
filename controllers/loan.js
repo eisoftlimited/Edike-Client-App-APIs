@@ -212,7 +212,9 @@ const createLoan = async (req, res) => {
     user.isbankstatementadded === "pending" &&
     user.iscardadded === "pending" &&
     user.isAccountVerified === "pending" &&
-    user.isidcard === "pending"
+    user.isidcard === "pending" &&
+    user.isnextofkin === "pending" &&
+    user.isaddressadded === "pending"
   ) {
     return res.status(400).json({
       msg: "Loan Application Declined, Please Complete KYC",
@@ -264,6 +266,20 @@ const createLoan = async (req, res) => {
   if (user.status === "blocked") {
     return res.status(400).json({
       msg: "Loan Application Declined, Your Account has been Temporarily Disabled",
+      status: "invalid",
+    });
+  }
+
+  if (user.isnextofkin === "pending") {
+    return res.status(400).json({
+      msg: "Loan Application Declined, Please Add Next of Kin Details",
+      status: "invalid",
+    });
+  }
+
+  if (user.isaddressadded === "pending") {
+    return res.status(400).json({
+      msg: "Loan Application Declined, Please Enter Your House Address",
       status: "invalid",
     });
   }

@@ -150,6 +150,24 @@ const UserSchema = new mongoose.Schema(
     houseAddressLink: {
       type: Array,
     },
+    isaddressadded: {
+      type: String,
+    },
+    isnextofkin: {
+      type: String,
+    },
+    nextofkinfirstname: {
+      type: String,
+    },
+    nextofkinlastname: {
+      type: String,
+    },
+    nextofkinaddress: {
+      type: String,
+    },
+    nextofkinphonenumber: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );

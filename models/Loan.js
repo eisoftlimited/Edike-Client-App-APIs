@@ -91,10 +91,13 @@ const LoanSchema = mongoose.Schema(
     pdf: {
       type: String,
     },
-     adminComment: {
+    adminComment: {
       type: String,
     },
     riskComment: {
+      type: String,
+    },
+    cComment: {
       type: String,
     },
   },

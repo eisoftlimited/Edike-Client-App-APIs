@@ -74,5 +74,10 @@ router.post(
   authenticationMiddleware,
   createAddressBill
 );
+router.post(
+  "/user/next-of-kin/details",
+  authenticationMiddleware,
+  createAddressBill
+);
 
 module.exports = router;

@@ -136,6 +136,8 @@ const registerEmail = async (req, res) => {
     iscardadded: "pending",
     isbankstatementadded: "pending",
     isidcard: "pending",
+    isaddressadded: "pending",
+    isnextofkin: "pending",
   });
 
   await newUser.save();
@@ -1093,10 +1095,53 @@ const createAddressBill = async (req, res) => {
 
   user.houseAddress = houseAddress;
   user.houseAddressLink = result;
+  user.isaddressadded = "approved";
   await user.save();
   return res
     .status(200)
     .json({ msg: "Address Verification Successful", status: "valid" });
+};
+
+const createNextOfKinDetails = async (req, res) => {
+  const {
+    nextofkinfirstname,
+    nextofkinlastname,
+    nextofkinaddress,
+    nextofkinphonenumber,
+  } = req.body;
+  if (
+    !nextofkinfirstname ||
+    !nextofkinlastname ||
+    !nextofkinaddress ||
+    !nextofkinphonenumber
+  ) {
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
+  }
+
+  if (nextofkinphonenumber.length !== 11) {
+    return res.status(400).json({
+      msg: "Incomplete Phone Number",
+      status: "invalid",
+    });
+  }
+
+  const user = await User.findById({ _id: req.user.id });
+  if (!user) {
+    return res.status(400).json({ msg: "Unverified User", status: "invalid" });
+  }
+
+  user.nextofkinfirstname = nextofkinfirstname;
+  user.nextofkinlastname = nextofkinlastname;
+  user.nextofkinaddress = nextofkinaddress;
+  user.nextofkinphonenumber = nextofkinphonenumber;
+  user.isnextofkin = "approved";
+  await user.save();
+  return res
+    .status(200)
+    .json({ msg: "Next Of Kin Verification Successful", status: "valid" });
 };
 
 module.exports = {
@@ -1118,4 +1163,5 @@ module.exports = {
   uploadIDCard,
   checkAccountStatus,
   createAddressBill,
+  createNextOfKinDetails,
 };
