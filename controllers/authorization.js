@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Contact = require("../models/Contact");
 const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const mailgun = require("mailgun-js");
@@ -1110,11 +1111,7 @@ const createNextOfKinDetails = async (req, res) => {
     nextofkinphonenumber,
   } = req.body;
 
-  if (
-    !nextofkinfirstname ||
-    !nextofkinlastname ||
-    !nextofkinaddress
-  ) {
+  if (!nextofkinfirstname || !nextofkinlastname || !nextofkinaddress) {
     return res.status(400).json({
       msg: "Enter all Fields",
       status: "invalid",
@@ -1144,6 +1141,116 @@ const createNextOfKinDetails = async (req, res) => {
     .json({ msg: "Next Of Kin Verification Successful", status: "valid" });
 };
 
+const contactmail = async (req, res) => {
+  const { email, name, phone, message } = req.body;
+
+  if (!email || !message || !name || !phone) {
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
+  }
+  if (phone.length !== 11) {
+    return res.status(400).json({
+      msg: "Incomplete Phone Number",
+      status: "invalid",
+    });
+  }
+
+  const user = await Contact.findOne({ email });
+  const userPhone = await Contact.findOne({ phone });
+
+  if (user) {
+    return res.status(400).json({
+      msg: "Email Already Exist",
+      status: "invalid",
+    });
+  }
+
+  if (userPhone) {
+    return res.status(400).json({
+      msg: "User with this Phone Number Already Exist",
+      status: "invalid",
+    });
+  }
+
+  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
+  const data = {
+    from: `${process.env.EMAIL_FROM}`,
+    to: email,
+    subject: "Edike Congratulation Message",
+    html: `
+      <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
+      <body style="padding:2px 4px; font-weight:400 color:white;">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
+        </div>
+        <h2>
+          Welcome to Edike.
+        </h2>
+        <h3>
+        Welcome and Congratulations to You.
+        </h3>
+        <p>We're delighted to have you on board.</p>
+        <p>
+        Welcome to Edike, Your Very Affordable Educational Loan For You.
+        </p>
+        
+        <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
+        </div>
+      </body>
+    `,
+  };
+  mg.messages().send(data, function (error) {
+    if (error) {
+      return res.status(400).json({
+        msg: error.message,
+        status: "invalid",
+      });
+    }
+
+    return res.status(200).json({
+      msg: "  Welcome Onboard, We all at Edike Celebrates your Arrival ",
+      status: "valid",
+    });
+  });
+
+  const newUser = await Contact.create({
+    name: req.body.name,
+    email: req.body.email,
+    phone: `+234${req.body.phone}`,
+    message: req.body.message,
+  });
+
+  await newUser.save();
+};
+
 module.exports = {
   registerEmail,
   loginEmail,
@@ -1164,4 +1271,6 @@ module.exports = {
   checkAccountStatus,
   createAddressBill,
   createNextOfKinDetails,
+
+  contactmail,
 };

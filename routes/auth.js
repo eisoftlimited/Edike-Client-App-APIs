@@ -23,7 +23,8 @@ const {
   uploadIDCard,
   checkAccountStatus,
   createAddressBill,
-  createNextOfKinDetails
+  createNextOfKinDetails,
+  contactmail,
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
@@ -80,5 +81,6 @@ router.post(
   authenticationMiddleware,
   createNextOfKinDetails
 );
+router.post("/user/new/welcome",contactmail);
 
 module.exports = router;
