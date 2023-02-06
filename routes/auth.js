@@ -23,6 +23,7 @@ const {
   uploadIDCard,
   checkAccountStatus,
   createAddressBill,
+  createNextOfKinDetails
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
@@ -77,7 +78,7 @@ router.post(
 router.post(
   "/user/next-of-kin/details",
   authenticationMiddleware,
-  createAddressBill
+  createNextOfKinDetails
 );
 
 module.exports = router;

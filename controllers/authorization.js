@@ -1083,7 +1083,7 @@ const createAddressBill = async (req, res) => {
     return res.status(400).json({ msg: "Unverified User", status: "invalid" });
   }
 
-  let multipleFileUpload = beneficiary_file.map((file) =>
+  let multipleFileUpload = houseAddressLink.map((file) =>
     cloudinary.uploader.upload(file.path, {
       public_id: `${Date.now()}`,
       resource_type: "auto",
@@ -1109,11 +1109,11 @@ const createNextOfKinDetails = async (req, res) => {
     nextofkinaddress,
     nextofkinphonenumber,
   } = req.body;
+
   if (
     !nextofkinfirstname ||
     !nextofkinlastname ||
-    !nextofkinaddress ||
-    !nextofkinphonenumber
+    !nextofkinaddress
   ) {
     return res.status(400).json({
       msg: "Enter all Fields",
