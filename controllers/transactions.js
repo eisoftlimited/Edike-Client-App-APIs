@@ -2,7 +2,7 @@ const User = require("../models/User");
 const request = require("request");
 
 const listTransactions = async (req, res) => {
-  const user = await User.findById({ _id: req.user.id });
+  const user = await User.find({ _id: req.user.id });
   if (!user) {
     return res.status(400).json({ msg: "Unverified User", status: "invalid" });
   }
@@ -23,8 +23,13 @@ const listTransactions = async (req, res) => {
     }
 
     const response = JSON.parse(body.body);
+
+    const mail = user.map((e) => {
+      return e.email;
+    });
+
     const final = response.data.filter((e) => {
-      if (e.customer.email === user.email) {
+      if (mail.toString() === e.customer.email) {
         return e;
       }
     });

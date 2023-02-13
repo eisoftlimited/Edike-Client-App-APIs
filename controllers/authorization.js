@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const mailgun = require("mailgun-js");
 const bcrypt = require("bcryptjs");
+// const sgMail = require("@sendgrid/mail");
 const DOMAIN = process.env.MAILGUN_SERVER;
 const { generateOTP, convertBase } = require("../utilities/otp");
 const cloudinary = require("cloudinary").v2;
@@ -56,11 +57,50 @@ const registerEmail = async (req, res) => {
 
   const otp = generateOTP();
 
+  // sgMail.setApiKey(process.env.SENDGRIDAPIKEY);
+
+  // sgMail
+  //   .send(msg)
+  //   .then(async () => {
+
+  //     const newUser = await User.create({
+  //       firstname: req.body.firstname,
+  //       lastname: req.body.lastname,
+  //       email: req.body.email,
+  //       password: hashpassword,
+  //       phone: `+234${req.body.phone}`,
+  //       otpToken: otp,
+  //       isAccountVerified: "pending",
+  //       isnin: "pending",
+  //       isbvn: "pending",
+  //       isappliedforloan: "pending",
+  //       iscardadded: "pending",
+  //       isbankstatementadded: "pending",
+  //       isidcard: "pending",
+  //       isaddressadded: "pending",
+  //       isnextofkin: "pending",
+  //     });
+
+  //     await newUser.save();
+
+  //     return res.status(200).json({
+  //       msg: "We've sent a 6-digit Activation Code to your Email Address",
+  //       status: "valid",
+  //     });
+  //   })
+  //   .catch((error) => {
+  //     return res.status(400).json({
+  //       msg: error,
+  //       status: "invalid",
+  //     });
+  //   });
+
   const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: `${process.env.EMAIL_FROM}`,
-    to: email,
+    from: "noreply@edike.info",
+    to: `${email}`,
     subject: "Edike Account Activation",
+    text: "Hello, and Welcome to Edike, We are Delighted to have you on board !",
     html: `
       <head>
         <style>
@@ -82,6 +122,7 @@ const registerEmail = async (req, res) => {
         <p style="font-size:40px ; font-weight:700; text-align: center">
         <strong>${otp}</strong>
         </p>
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
         <div style="padding:3px 2px; color:white;" >
         <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
           
@@ -109,39 +150,38 @@ const registerEmail = async (req, res) => {
       </body>
     `,
   };
-  mg.messages().send(data, function (error) {
+  mg.messages().send(data, async function (error) {
     if (error) {
       return res.status(400).json({
         msg: error.message,
-        status: "invalid",
       });
     }
+
+    const newUser = await User.create({
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      email: req.body.email,
+      password: hashpassword,
+      phone: `+234${req.body.phone}`,
+      otpToken: otp,
+      isAccountVerified: "pending",
+      isnin: "pending",
+      isbvn: "pending",
+      isappliedforloan: "pending",
+      iscardadded: "pending",
+      isbankstatementadded: "pending",
+      isidcard: "pending",
+      isaddressadded: "pending",
+      isnextofkin: "pending",
+    });
+
+    await newUser.save();
 
     return res.status(200).json({
       msg: "We've sent a 6-digit Activation Code to your Email Address",
       status: "valid",
     });
   });
-
-  const newUser = await User.create({
-    firstname: req.body.firstname,
-    lastname: req.body.lastname,
-    email: req.body.email,
-    password: hashpassword,
-    phone: `+234${req.body.phone}`,
-    otpToken: otp,
-    isAccountVerified: "pending",
-    isnin: "pending",
-    isbvn: "pending",
-    isappliedforloan: "pending",
-    iscardadded: "pending",
-    isbankstatementadded: "pending",
-    isidcard: "pending",
-    isaddressadded: "pending",
-    isnextofkin: "pending",
-  });
-
-  await newUser.save();
 };
 
 const resendOTP = async (req, res) => {
@@ -190,6 +230,7 @@ const resendOTP = async (req, res) => {
         <p style="font-size:40px ; font-weight:700; text-align: center">
         <strong>${otp}</strong>
         </p>
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
         <div style="padding:3px 2px; color:white;" >
         <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
           
@@ -277,6 +318,7 @@ const resendResetPasswordOTP = async (req, res) => {
         <p style="font-size:40px ; font-weight:700; text-align: center">
         <strong>${otp}</strong>
         </p>
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
      <div style="padding:3px 2px; color:white;" >
         <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
           
@@ -704,6 +746,7 @@ const forgotPassword = async (req, res) => {
           ${otp}
         </strong>
         </p>
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
         <div style="padding:3px 2px; color:white;" >
         <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
           
@@ -1142,23 +1185,16 @@ const createNextOfKinDetails = async (req, res) => {
 };
 
 const contactmail = async (req, res) => {
-  const { email, name, phone, message } = req.body;
+  const { email } = req.body;
 
-  if (!email || !message || !name || !phone) {
+  if (!email) {
     return res.status(400).json({
       msg: "Enter all Fields",
       status: "invalid",
     });
   }
-  if (phone.length !== 11) {
-    return res.status(400).json({
-      msg: "Incomplete Phone Number",
-      status: "invalid",
-    });
-  }
 
   const user = await Contact.findOne({ email });
-  const userPhone = await Contact.findOne({ phone });
 
   if (user) {
     return res.status(400).json({
@@ -1167,18 +1203,11 @@ const contactmail = async (req, res) => {
     });
   }
 
-  if (userPhone) {
-    return res.status(400).json({
-      msg: "User with this Phone Number Already Exist",
-      status: "invalid",
-    });
-  }
-
   const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
     from: `${process.env.EMAIL_FROM}`,
     to: email,
-    subject: "Edike Congratulation Message",
+    subject: "Edike's Congratulatoty Message",
     html: `
       <head>
         <style>
@@ -1190,16 +1219,15 @@ const contactmail = async (req, res) => {
         <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
         </div>
         <h2>
-          Welcome to Edike.
+         Edike.
         </h2>
         <h3>
         Welcome and Congratulations to You.
         </h3>
-        <p>We're delighted to have you on board.</p>
-        <p>
-        Welcome to Edike, Your Very Affordable Educational Loan For You.
+        <p>We're delighted to have you on board...<br/> Our goal is to improve access to education in Nigeria and Africa by bridging the funding gap that exists on the consumer side. We are building a user-friendly ecosystem that provides resources that aid learning and supports parents with the management of financial obligation of school fees payment.
         </p>
-        
+
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
         <div style="padding:3px 2px; color:white;" >
         <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
           

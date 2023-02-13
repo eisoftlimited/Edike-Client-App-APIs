@@ -100,6 +100,9 @@ const LoanSchema = mongoose.Schema(
     cComment: {
       type: String,
     },
+    message: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
