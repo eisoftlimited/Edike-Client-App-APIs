@@ -1184,9 +1184,8 @@ const createNextOfKinDetails = async (req, res) => {
     .json({ msg: "Next Of Kin Verification Successful", status: "valid" });
 };
 
-const contactmail = async (req, res) => {
+const subscribedmail = async (req, res) => {
   const { email } = req.body;
-
   if (!email) {
     return res.status(400).json({
       msg: "Enter all Fields",
@@ -1207,7 +1206,7 @@ const contactmail = async (req, res) => {
   const data = {
     from: `${process.env.EMAIL_FROM}`,
     to: email,
-    subject: "Edike's Congratulatoty Message",
+    subject: "You have Subscribed Successfully",
     html: `
       <head>
         <style>
@@ -1264,7 +1263,93 @@ const contactmail = async (req, res) => {
     }
 
     return res.status(200).json({
-      msg: "  Welcome Onboard, We all at Edike Celebrates your Arrival ",
+      msg: " Welcome Onboard, You have Subscribed Successfully ",
+      status: "valid",
+    });
+  });
+};
+
+const contactedMail = async (req, res) => {
+  const { email, name, message, phone } = req.body;
+
+  if (!email || !name || !message || !phone) {
+    return res.status(400).json({
+      msg: "Enter all Fields",
+      status: "invalid",
+    });
+  }
+
+  const user = await Contact.findOne({ email });
+
+  if (user) {
+    return res.status(400).json({
+      msg: "Email Already Exist",
+      status: "invalid",
+    });
+  }
+
+  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
+  const data = {
+    from: `${process.env.EMAIL_FROM}`,
+    to: email,
+    subject: "Edike's Congratulatory Message",
+    html: `
+      <head>
+        <style>
+          body {background-color: #121212 !important; color:white !important;}
+        </style>
+      </head>
+      <body style="padding:2px 4px; font-weight:400 color:white;">
+        <div style="padding:10px 0px; text-align: center">
+        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
+        </div>
+        <h2>
+         Edike.
+        </h2>
+        <h3>
+        Welcome and Congratulations to You.
+        </h3>
+        <p>We're delighted to have you on board...<br/> Our goal is to improve access to education in Nigeria and Africa by bridging the funding gap that exists on the consumer side. We are building a user-friendly ecosystem that provides resources that aid learning and supports parents with the management of financial obligation of school fees payment.
+        </p>
+
+        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
+        <div style="padding:3px 2px; color:white;" >
+        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
+          
+          <div style="padding:0px 3px; color:white;">
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
+            </a>
+          </div>
+          <div style="padding:0px 3px; color:white;" >
+            <a href="https://edike.ng">
+              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
+            </a>
+          </div>
+        </div>
+        </div>
+        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
+        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
+        <p><b>All Rights Reserved.</b></p>
+        </div>
+      </body>
+    `,
+  };
+  mg.messages().send(data, function (error) {
+    if (error) {
+      return res.status(400).json({
+        msg: error.message,
+        status: "invalid",
+      });
+    }
+
+    return res.status(200).json({
+      msg: "You will get a feedback from us in a Jiffy! ",
       status: "valid",
     });
   });
@@ -1299,6 +1384,6 @@ module.exports = {
   checkAccountStatus,
   createAddressBill,
   createNextOfKinDetails,
-
-  contactmail,
+  contactedMail,
+  subscribedmail,
 };

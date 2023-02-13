@@ -24,7 +24,8 @@ const {
   checkAccountStatus,
   createAddressBill,
   createNextOfKinDetails,
-  contactmail,
+  contactedMail,
+  subscribedmail,
 } = require("../controllers/authorization");
 
 router.get("/user", authenticationMiddleware, loadUser);
@@ -81,6 +82,7 @@ router.post(
   authenticationMiddleware,
   createNextOfKinDetails
 );
-router.post("/user/new/welcome",contactmail);
+router.post("/user/new/welcome", contactedMail);
+router.post("/user/new/subscribe", subscribedmail);
 
 module.exports = router;
