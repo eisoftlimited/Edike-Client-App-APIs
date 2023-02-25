@@ -1,3 +1,5 @@
+const Transaction = require("../models/Transaction")
+
 const paystackApi = (request) => {
   const initializePayment = (form, mycallback) => {
     const options = {
@@ -28,6 +30,8 @@ const paystackApi = (request) => {
       return mycallback(error, body);
     };
     request(options, callback);
+
+
   };
 
   return { initializePayment, verifyPayment };

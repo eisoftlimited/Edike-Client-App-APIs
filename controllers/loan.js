@@ -97,15 +97,15 @@
 //   }
 
 //   if (user.isbvn === "approved" || user.isnin === "approved") {
-//     let multipleFileUpload = beneficiary_file.map((file) =>
-//       cloudinary.uploader.upload(file.path, {
-//         public_id: `${Date.now()}`,
-//         resource_type: "auto",
-//         folder: "Edike User Bill Credentials",
-//       })
-//     );
+    // let multipleFileUpload = beneficiary_file.map((file) =>
+    //   cloudinary.uploader.upload(file.path, {
+    //     public_id: `${Date.now()}`,
+    //     resource_type: "auto",
+    //     folder: "Edike User Bill Credentials",
+    //   })
+    // );
 
-//     let result = await Promise.all(multipleFileUpload);
+    // let result = await Promise.all(multipleFileUpload);
 
 //     const loan = await Loan.create({
 //       createdBy: req.user.id,

@@ -35,7 +35,9 @@
     "node-base64-image": "^2.0.4",
     "paystack-api": "^2.0.6",
     "pdf-to-base64": "^1.0.3",
+    "postmark": "^3.0.15",
     "rimraf": "^3.0.2",
+    "uuidv4": "^6.2.13",
     "xss-clean": "^0.1.1"
   }
 }

@@ -2,14 +2,52 @@ const mongoose = require("mongoose");
 
 const TransactionSchema = mongoose.Schema(
   {
-    date: {
-      type: Date,
-      default: Date.now,
-    },
-    createdBy: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
       required: [true, "Please Start a Transaction "],
+    },
+    
+    loan_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Loans",
+    },
+    reference: {
+      type: String,
+      required: [true, "Enter a Reference "],
+      unique: true,
+    },
+    payment_reference: {
+      type: String,
+      required: [true, "Enter a unique Reference "],
+      unique: true,
+    },
+    type: {
+      type: String,
+      required: [true, "Enter a platform of payment "],
+    },
+    amount: {
+      type: Number,
+      required: [true, "Enter Transaction Amount "],
+    },
+    status: {
+      type: String,
+      enum: ["pending", "failed", "success"],
+      default: "pending",
+    },
+    description: {
+      type: String,
+      required: [true, "Enter a description for this Transaction "],
+    },
+    meta: {
+      type: Object,
+    },
+    verified: {
+      type: Boolean,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }

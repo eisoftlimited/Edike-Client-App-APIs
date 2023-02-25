@@ -2,7 +2,12 @@ const { StatusCodes } = require("http-status-codes");
 const Card = require("../models/Card");
 const User = require("../models/User");
 const request = require("request");
+const Transaction = require("../models/Transaction");
+const { uuid } = require("uuidv4");
+
 const { initializePayment, verifyPayment } = require("./paystackApi")(request);
+
+const edikeref = uuid();
 
 const createCard = async (req, res) => {
   const usercard = await Card.findOne({ createdBy: req.user.id });
@@ -18,13 +23,25 @@ const createCard = async (req, res) => {
       amount,
     };
 
-    initializePayment(data, (error, body) => {
+    initializePayment(data, async (error, body) => {
       if (error) {
         return res
           .status(400)
           .json({ msg: `${error.message}`, status: "invalid" });
       }
       const response = JSON.parse(body.body);
+
+      const transact = await Transaction.create({
+        user_id: user._id,
+        reference: `EKI-${edikeref}`,
+        payment_reference: response.data.reference,
+        type: "PAYSTACK",
+        amount: amount,
+        description: "User Card Tokenization",
+        verified: false,
+      });
+      await transact.save();
+
       return res.status(200).json({ response, status: "valid" });
     });
   }
@@ -55,12 +72,19 @@ const verifyCard = async (req, res) => {
         .json({ msg: "Unverified User", status: "invalid" });
     }
 
+    const transact = await Transaction.findOne({
+      payment_reference: ref,
+    });
+
     const card = await Card.create({
       createdBy: req.user.id,
       card: response.data.authorization,
     });
 
     await card.save();
+    transact.verified = true;
+    transact.status = response.data.status;
+    await transact.save();
     user.iscardadded = "approved";
     await user.save();
     return res
