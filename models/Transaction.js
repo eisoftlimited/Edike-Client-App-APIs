@@ -7,20 +7,19 @@ const TransactionSchema = mongoose.Schema(
       ref: "Users",
       required: [true, "Please Start a Transaction "],
     },
-    
+
     loan_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Loans",
     },
     reference: {
       type: String,
-      required: [true, "Enter a Reference "],
+      required: [true, "Enter a Unique Reference "],
       unique: true,
     },
     payment_reference: {
       type: String,
-      required: [true, "Enter a unique Reference "],
-      unique: true,
+      required: [true, "Enter a Reference "],
     },
     type: {
       type: String,

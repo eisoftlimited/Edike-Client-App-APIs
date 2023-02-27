@@ -18,9 +18,11 @@ const createCard = async (req, res) => {
     const user = await User.findById({ _id: req.user.id });
     const email = user.email;
     const amount = 5000;
+    const reference = `EKI-${edikeref}`;
     const data = {
       email,
       amount,
+      reference,
     };
 
     initializePayment(data, async (error, body) => {
@@ -33,15 +35,14 @@ const createCard = async (req, res) => {
 
       const transact = await Transaction.create({
         user_id: user._id,
-        reference: `EKI-${edikeref}`,
-        payment_reference: response.data.reference,
+        reference: reference,
+        payment_reference: response.data.access_code,
         type: "PAYSTACK",
         amount: amount,
         description: "User Card Tokenization",
         verified: false,
       });
       await transact.save();
-
       return res.status(200).json({ response, status: "valid" });
     });
   }
@@ -73,7 +74,7 @@ const verifyCard = async (req, res) => {
     }
 
     const transact = await Transaction.findOne({
-      payment_reference: ref,
+      reference: ref,
     });
 
     const card = await Card.create({
@@ -83,13 +84,15 @@ const verifyCard = async (req, res) => {
 
     await card.save();
     transact.verified = true;
+    transact.payment_reference = response.data.id;
     transact.status = response.data.status;
-    await transact.save();
     user.iscardadded = "approved";
+    await transact.save();
+
     await user.save();
     return res
       .status(StatusCodes.CREATED)
-      .json({ msg: "Card Verification Successful", status: "valid" });
+      .json({ response, msg: "Card Verification Successful", status: "valid" });
   });
 };
 
