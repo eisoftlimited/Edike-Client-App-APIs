@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const mailgun = require("mailgun-js");
 const bcrypt = require("bcryptjs");
-// const sgMail = require("@sendgrid/mail");
+
 const DOMAIN = process.env.MAILGUN_SERVER;
 const { generateOTP, convertBase } = require("../utilities/otp");
 const cloudinary = require("cloudinary").v2;
@@ -12,6 +12,7 @@ const request = require("request");
 const date = new Date().getUTCFullYear();
 const fs = require("fs");
 const BankStatement = require("../models/BankStatement");
+const sendEmail = require("./../utilities/sendEmail");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -57,130 +58,45 @@ const registerEmail = async (req, res) => {
 
   const otp = generateOTP();
 
-  // sgMail.setApiKey(process.env.SENDGRIDAPIKEY);
-
-  // sgMail
-  //   .send(msg)
-  //   .then(async () => {
-
-  //     const newUser = await User.create({
-  //       firstname: req.body.firstname,
-  //       lastname: req.body.lastname,
-  //       email: req.body.email,
-  //       password: hashpassword,
-  //       phone: `+234${req.body.phone}`,
-  //       otpToken: otp,
-  //       isAccountVerified: "pending",
-  //       isnin: "pending",
-  //       isbvn: "pending",
-  //       isappliedforloan: "pending",
-  //       iscardadded: "pending",
-  //       isbankstatementadded: "pending",
-  //       isidcard: "pending",
-  //       isaddressadded: "pending",
-  //       isnextofkin: "pending",
-  //     });
-
-  //     await newUser.save();
-
-  //     return res.status(200).json({
-  //       msg: "We've sent a 6-digit Activation Code to your Email Address",
-  //       status: "valid",
-  //     });
-  //   })
-  //   .catch((error) => {
-  //     return res.status(400).json({
-  //       msg: error,
-  //       status: "invalid",
-  //     });
-  //   });
-
-  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: "noreply@edike.info",
-    to: `${email}`,
-    subject: "Edike Account Activation",
-    text: "Hello, and Welcome to Edike, We are Delighted to have you on board !",
-    html: `
-      <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-      <body style="padding:2px 4px; font-weight:400 color:white;">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
-        </div>
-        <h2>
-          Welcome to Edike.
-        </h2>
-        <h3>
-        Enter OTP for Account Verification.
-        </h3>
-        <p>We're delighted to have you on board, Let's get your email address verified</p>
-        <p>Please use this verification code below to complete your sign up process: </p>
-        <p style="font-size:40px ; font-weight:700; text-align: center">
-        <strong>${otp}</strong>
-        </p>
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-        <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-    `,
+    otp: otp,
   };
-  mg.messages().send(data, async function (error) {
-    if (error) {
-      return res.status(400).json({
-        msg: error.message,
-      });
-    }
 
-    const newUser = await User.create({
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
-      email: req.body.email,
-      password: hashpassword,
-      phone: `+234${req.body.phone}`,
-      otpToken: otp,
-      isAccountVerified: "pending",
-      isnin: "pending",
-      isbvn: "pending",
-      isappliedforloan: "pending",
-      iscardadded: "pending",
-      isbankstatementadded: "pending",
-      isidcard: "pending",
-      isaddressadded: "pending",
-      isnextofkin: "pending",
-    });
+  // using send grid to send out emails
+  sendEmail.sendGridEmail(
+    email, // recipient email
+    "d-b978e6208d1c458787352650489b40e2", // template id
+    "Congratulations 🎉, Welcome to Edike", // subject
+    data
+  );
 
-    await newUser.save();
+  // response...
+  const customers = await User.find({});
 
-    return res.status(200).json({
-      msg: "We've sent a 6-digit Activation Code to your Email Address",
-      status: "valid",
-    });
+  const newUser = await User.create({
+    customer_reference: `EDK/${customers.length + 1}`,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+    email: req.body.email,
+    password: hashpassword,
+    phone: `+234${req.body.phone}`,
+    otpToken: otp,
+    isAccountVerified: "pending",
+    isnin: "pending",
+    isbvn: "pending",
+    isappliedforloan: "pending",
+    iscardadded: "pending",
+    isbankstatementadded: "pending",
+    isidcard: "pending",
+    isaddressadded: "pending",
+    isnextofkin: "pending",
+  });
+
+  await newUser.save();
+
+  return res.status(200).json({
+    msg: "We've sent a 6-digit Activation Code to your Email Address",
+    status: "valid",
   });
 };
 
@@ -204,72 +120,21 @@ const resendOTP = async (req, res) => {
   user.otpToken = otp;
   await user.save();
 
-  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: `${process.env.EMAIL_FROM}`,
-    to: user.email,
-    subject: "Edike Account Activation",
-    html: `
-      <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-      <body style="padding:2px 4px; font-weight:400">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
-        </div>
-        <h2>
-          Welcome to Edike.
-        </h2>
-        <h3>
-        Enter OTP for Account Verification.
-        </h3>
-        <p>We're delighted to have you on board, Let's get your email address verified</p>
-        <p>Please use this verification code below to complete your sign up process: </p>
-        <p style="font-size:40px ; font-weight:700; text-align: center">
-        <strong>${otp}</strong>
-        </p>
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-        <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-    `,
+    otp: otp,
   };
-  mg.messages().send(data, function (error) {
-    if (error) {
-      return res.status(400).json({
-        msg: error.message,
-        status: "invalid",
-      });
-    }
 
-    return res.status(200).json({
-      msg: "We've sent a 6-digit Activation Code to your Email Address",
-      status: "valid",
-    });
+  // using send grid to send out emails
+  sendEmail.sendGridEmail(
+    email, // recipient email
+    "d-39770c5c4609466dbb05b5af4fbdd5f6", // template id
+    "Edike OTP Verification", // subject
+    data
+  );
+
+  return res.status(200).json({
+    msg: "We've sent a 6-digit Activation Code to your Email Address",
+    status: "valid",
   });
 };
 
@@ -292,72 +157,21 @@ const resendResetPasswordOTP = async (req, res) => {
   user.resetPasswordToken = otp;
   await user.save();
 
-  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
   const data = {
-    from: `${process.env.EMAIL_FROM}`,
-    to: user.email,
-    subject: "Edike Reset Password",
-    html: `
-      <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-      <body style="padding:2px 4px; font-weight:400">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
-        </div>
-        <h2>
-          Edike Reset Verification
-        </h2>
-        <h3>
-        Enter OTP for Reset Password Confirmation.
-        </h3>
-        <p>We're delighted to have you on board, Let's help you reset your password</p>
-        <p>Please use this verification code below to complete your reset process: </p>
-        <p style="font-size:40px ; font-weight:700; text-align: center">
-        <strong>${otp}</strong>
-        </p>
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-     <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-    `,
+    otp: otp,
   };
-  mg.messages().send(data, function (error) {
-    if (error) {
-      return res.status(400).json({
-        msg: error.message,
-        status: "invalid",
-      });
-    }
 
-    return res.status(200).json({
-      msg: "We've sent a 6-digit Reset Code to your Email Address",
-      status: "valid",
-    });
+  // using send grid to send out emails
+  sendEmail.sendGridEmail(
+    email, // recipient email
+    "d-391a706b81c74ec9982aa50a41c90e9d", // template id
+    "Reset Password Verification", // subject
+    data
+  );
+
+  return res.status(200).json({
+    msg: "We've sent a 6-digit Reset Code to your Email Address",
+    status: "valid",
   });
 };
 
@@ -715,77 +529,21 @@ const forgotPassword = async (req, res) => {
       user
         .save()
         .then((user) => {
-          const mg = mailgun({
-            apiKey: process.env.MAILGUN_API_KEY,
-            domain: DOMAIN,
-          });
           const data = {
-            from: `${process.env.EMAIL_FROM}`,
-            to: email,
-            subject: "Edike Reset Password",
-            html: `
-            <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-       <body style="padding:2px 4px; font-weight:400">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:100px; height:40px" />
-        </div>
-        <h2>
-          Edike Reset Verification.
-        </h2>
-        <h3>
-        Enter OTP for Reset Password Confirmation
-        </h3>
-        <p>We're delighted to have you on board, Let's get your email address verified</p>
-        <p>Please use this verification code below to complete your sign up process: </p>
-        <p style="font-size:40px ; font-weight:700; text-align: center">
-        <strong>
-          ${otp}
-        </strong>
-        </p>
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-        <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-             `,
+            otp: otp,
           };
-          mg.messages().send(data, function (error) {
-            if (error) {
-              return res.status(400).json({
-                msg: error.message,
-                status: "invalid",
-              });
-            }
 
-            return res.status(200).json({
-              msg: "We've sent a 6-digit Activation Code to your Email Address",
-              status: "valid",
-            });
+          // using send grid to send out emails
+          sendEmail.sendGridEmail(
+            email, // recipient email
+            "d-7efe659fc4264d61a3f462826bd3db71", // template id
+            "Reset Password OTP Verification", // subject
+            data
+          );
+
+          return res.status(200).json({
+            msg: "We've sent a 6-digit Activation Code to your Email Address",
+            status: "valid",
           });
         })
         .catch((err) =>
@@ -1202,70 +960,19 @@ const subscribedmail = async (req, res) => {
     });
   }
 
-  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
-  const data = {
-    from: `${process.env.EMAIL_FROM}`,
-    to: email,
-    subject: "You have Subscribed Successfully",
-    html: `
-      <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-      <body style="padding:2px 4px; font-weight:400 color:white;">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
-        </div>
-        <h2>
-         Edike.
-        </h2>
-        <h3>
-        Welcome and Congratulations to You.
-        </h3>
-        <p>We're delighted to have you on board...<br/> Our goal is to improve access to education in Nigeria and Africa by bridging the funding gap that exists on the consumer side. We are building a user-friendly ecosystem that provides resources that aid learning and supports parents with the management of financial obligation of school fees payment.
-        </p>
+  const data = {};
 
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-        <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-    `,
-  };
-  mg.messages().send(data, function (error) {
-    if (error) {
-      return res.status(400).json({
-        msg: error.message,
-        status: "invalid",
-      });
-    }
+  // using send grid to send out emails
+  sendEmail.sendGridEmail(
+    email, // recipient email
+    "d-87fcca9e10984dbe961d8b6918b949e6", // template id
+    "You've Subscribed 🎉, Welcome to Edike", // subject
+    data
+  );
 
-    return res.status(200).json({
-      msg: " Welcome Onboard, You have Subscribed Successfully ",
-      status: "valid",
-    });
+  return res.status(200).json({
+    msg: " Welcome Onboard, You have Subscribed Successfully ",
+    status: "valid",
   });
 };
 
@@ -1288,71 +995,15 @@ const contactedMail = async (req, res) => {
     });
   }
 
-  const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
-  const data = {
-    from: `${process.env.EMAIL_FROM}`,
-    to: email,
-    subject: "Edike's Congratulatory Message",
-    html: `
-      <head>
-        <style>
-          body {background-color: #121212 !important; color:white !important;}
-        </style>
-      </head>
-      <body style="padding:2px 4px; font-weight:400 color:white;">
-        <div style="padding:10px 0px; text-align: center">
-        <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671800748/edike%20logo/flbvdxkotzjvmkhqfcn5.png" alt="edike.ng" style="width:90px; height:35px" />
-        </div>
-        <h2>
-         Edike.
-        </h2>
-        <h3>
-        Welcome and Congratulations to You.
-        </h3>
-        <p>We're delighted to have you on board...<br/> Our goal is to improve access to education in Nigeria and Africa by bridging the funding gap that exists on the consumer side. We are building a user-friendly ecosystem that provides resources that aid learning and supports parents with the management of financial obligation of school fees payment.
-        </p>
+  const data = {};
 
-        <p>Contact <a href="mailto:enquiries@edike.ng">enquiries@edike.ng</a> for any enquiries or visit <a href="https://edike.ng">www.edike.ng </a> for our Frequently Asked Questions(FAQs)</p> 
-        <div style="padding:3px 2px; color:white;" >
-        <div style="display:flex; flex-direction: row; justify-content:center; align-items:center;">
-          
-          <div style="padding:0px 3px; color:white;">
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843692/edike%20logo/bgi6j4khcxxpodq8nioe.png" alt="edike.ng" />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843954/edike%20logo/eayviuuhs5zltmpqzmdg.png" alt="edike.ng"  />
-            </a>
-          </div>
-          <div style="padding:0px 3px; color:white;" >
-            <a href="https://edike.ng">
-              <img src="https://res.cloudinary.com/edikeeduloan/image/upload/v1671843648/edike%20logo/jepjo0e9zncionjuibyy.png" alt="edike.ng"  />
-            </a>
-          </div>
-        </div>
-        </div>
-        <div style="padding:5px 0px; text-align:center"; font-size:50px; font-weight:500; >
-        <b> &#169; ${date} Competence Asset Management Company Limited.</b>
-        <p><b>All Rights Reserved.</b></p>
-        </div>
-      </body>
-    `,
-  };
-  mg.messages().send(data, function (error) {
-    if (error) {
-      return res.status(400).json({
-        msg: error.message,
-        status: "invalid",
-      });
-    }
-
-    return res.status(200).json({
-      msg: "You will get a feedback from us in a Jiffy! ",
-      status: "valid",
-    });
-  });
+  // using send grid to send out emails
+  sendEmail.sendGridEmail(
+    email, // recipient email
+    "d-1645555886504261a478aa2d56589f4d", // template id
+    "Welcome🎉, We're Delighted!", // subject
+    data
+  );
 
   const newUser = await Contact.create({
     name: req.body.name,
@@ -1362,6 +1013,11 @@ const contactedMail = async (req, res) => {
   });
 
   await newUser.save();
+
+  return res.status(200).json({
+    msg: "You will get a feedback from us in a Jiffy! ",
+    status: "valid",
+  });
 };
 
 module.exports = {

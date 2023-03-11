@@ -97,15 +97,15 @@
 //   }
 
 //   if (user.isbvn === "approved" || user.isnin === "approved") {
-    // let multipleFileUpload = beneficiary_file.map((file) =>
-    //   cloudinary.uploader.upload(file.path, {
-    //     public_id: `${Date.now()}`,
-    //     resource_type: "auto",
-    //     folder: "Edike User Bill Credentials",
-    //   })
-    // );
+// let multipleFileUpload = beneficiary_file.map((file) =>
+//   cloudinary.uploader.upload(file.path, {
+//     public_id: `${Date.now()}`,
+//     resource_type: "auto",
+//     folder: "Edike User Bill Credentials",
+//   })
+// );
 
-    // let result = await Promise.all(multipleFileUpload);
+// let result = await Promise.all(multipleFileUpload);
 
 //     const loan = await Loan.create({
 //       createdBy: req.user.id,
@@ -295,7 +295,10 @@ const createLoan = async (req, res) => {
 
     let result = await Promise.all(multipleFileUpload);
 
+    const loans = await Loan.find({});
+
     const loan = await Loan.create({
+      loan_reference: `EDI/${loans.length + 1}`,
       createdBy: req.user.id,
       beneficiary_duration: req.body.beneficiary_duration,
       beneficiary_amount: req.body.beneficiary_amount,

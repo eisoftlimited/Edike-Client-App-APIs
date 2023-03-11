@@ -3,6 +3,10 @@ const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema(
   {
+    customer_reference: {
+      type: String,
+      unique: true,
+    },
     role: {
       type: String,
       enum: ["regular", "system", "cfo", "cto", "ad"],

@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const LoanSchema = mongoose.Schema(
   {
+    loan_reference: {
+      type: String,
+      unique:true
+    },
     beneficiary_amount: {
       type: Number,
       required: [true, "Enter an Amount "],
