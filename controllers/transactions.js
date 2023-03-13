@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Transaction = require("../models/Transaction");
 const request = require("request");
 
 const listTransactions = async (req, res) => {
@@ -6,6 +7,11 @@ const listTransactions = async (req, res) => {
   if (!user) {
     return res.status(400).json({ msg: "Unverified User", status: "invalid" });
   }
+
+  const transact = await Transaction.find({
+    user_id: req.user.id,
+  });
+
   const options = {
     method: "GET",
     url: "https://api.paystack.co/transaction",
@@ -34,7 +40,9 @@ const listTransactions = async (req, res) => {
       }
     });
 
-    return res.status(200).json({ ans: final, status: "valid" });
+    return res
+      .status(200)
+      .json({ ans: final, status: "valid", transaction: transact });
   });
 };
 
