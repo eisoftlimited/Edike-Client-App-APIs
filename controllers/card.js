@@ -36,6 +36,8 @@ const createCard = async (req, res) => {
       const transact = await Transaction.create({
         user_id: user._id,
         reference: reference,
+        cus_email: user.email,
+        cus_name: `${user.firstname + "" + user.lastname}`,
         cus_ref: user.customer_reference,
         payment_reference: response.data.access_code,
         type: "PAYSTACK",

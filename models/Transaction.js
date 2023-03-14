@@ -12,6 +12,18 @@ const TransactionSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Loans",
     },
+    loan_ref: {
+      type: String,
+    },
+    cus_ref: {
+      type: String,
+    },
+    cus_email: {
+      type: String,
+    },
+    cus_name: {
+      type: String,
+    },
     reference: {
       type: String,
       required: [true, "Enter a Unique Reference "],
