@@ -4,7 +4,7 @@ const LoanSchema = mongoose.Schema(
   {
     loan_reference: {
       type: String,
-      unique:true
+      unique: true,
     },
     beneficiary_amount: {
       type: Number,
@@ -105,6 +105,15 @@ const LoanSchema = mongoose.Schema(
       type: String,
     },
     message: {
+      type: String,
+    },
+    firstdue: {
+      type: String,
+    },
+    seconddue: {
+      type: String,
+    },
+    thirddue: {
       type: String,
     },
   },
