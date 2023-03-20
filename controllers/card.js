@@ -39,7 +39,7 @@ const createCard = async (req, res) => {
         cus_email: user.email,
         cus_name: `${user.firstname + "" + user.lastname}`,
         cus_ref: user.customer_reference,
-        payment_reference: response.data.access_code,
+        payment_reference: response.data.reference,
         type: "PAYSTACK",
         amount: amount,
         description: "User Card Tokenization",
