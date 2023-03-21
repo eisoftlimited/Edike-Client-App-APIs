@@ -8,6 +8,7 @@ const { uuid } = require("uuidv4");
 const { initializePayment, verifyPayment } = require("./paystackApi")(request);
 
 const createCard = async (req, res) => {
+  var edikeref = uuid();
   const usercard = await Card.findOne({ createdBy: req.user.id });
   if (usercard) {
     res.status(400).json({ msg: "Card Already Exist", status: "invalid" });
@@ -16,6 +17,7 @@ const createCard = async (req, res) => {
     const user = await User.findById({ _id: req.user.id });
     const email = user.email;
     const amount = 5000;
+    var reference = `EKI-${edikeref}`;
     const data = {
       email,
       amount,
@@ -23,7 +25,6 @@ const createCard = async (req, res) => {
     };
 
     initializePayment(data, async (error, body) => {
-      var edikeref = uuid();
       if (error) {
         return res
           .status(400)
@@ -33,7 +34,7 @@ const createCard = async (req, res) => {
 
       const transact = await Transaction.create({
         user_id: user._id,
-        reference: `EKI-${edikeref}`,
+        reference: reference,
         cus_email: user.email,
         cus_name: `${user.firstname + "" + user.lastname}`,
         cus_ref: user.customer_reference,
