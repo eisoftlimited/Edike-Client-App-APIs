@@ -31,7 +31,6 @@ const TransactionSchema = mongoose.Schema(
     },
     payment_reference: {
       type: String,
-      required: [true, "Enter a Reference "],
     },
     type: {
       type: String,
