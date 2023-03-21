@@ -4,10 +4,9 @@ const User = require("../models/User");
 const request = require("request");
 const Transaction = require("../models/Transaction");
 const { uuid } = require("uuidv4");
+const edikeref = uuid();
 
 const { initializePayment, verifyPayment } = require("./paystackApi")(request);
-
-const edikeref = uuid();
 
 const createCard = async (req, res) => {
   const usercard = await Card.findOne({ createdBy: req.user.id });
@@ -35,11 +34,11 @@ const createCard = async (req, res) => {
 
       const transact = await Transaction.create({
         user_id: user._id,
-        reference: reference,
+        reference: `EKI-${edikeref}`,
         cus_email: user.email,
         cus_name: `${user.firstname + "" + user.lastname}`,
         cus_ref: user.customer_reference,
-        payment_reference: "",
+        payment_reference: `PAY-${edikeref}`,
         type: "PAYSTACK",
         amount: amount,
         description: "User Card Tokenization",
