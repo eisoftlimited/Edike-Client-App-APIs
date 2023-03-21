@@ -3,12 +3,12 @@ const Card = require("../models/Card");
 const User = require("../models/User");
 const request = require("request");
 const Transaction = require("../models/Transaction");
-const { uuid } = require("uuidv4");
+const { v4: uuidv4 } = require("uuid");
 
 const { initializePayment, verifyPayment } = require("./paystackApi")(request);
 
 const createCard = async (req, res) => {
-  var edikeref = uuid();
+  var edikeref = uuidv4();
   const usercard = await Card.findOne({ createdBy: req.user.id });
   if (usercard) {
     res.status(400).json({ msg: "Card Already Exist", status: "invalid" });
