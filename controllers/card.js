@@ -4,7 +4,6 @@ const User = require("../models/User");
 const request = require("request");
 const Transaction = require("../models/Transaction");
 const { uuid } = require("uuidv4");
-const edikeref = uuid();
 
 const { initializePayment, verifyPayment } = require("./paystackApi")(request);
 
@@ -17,7 +16,6 @@ const createCard = async (req, res) => {
     const user = await User.findById({ _id: req.user.id });
     const email = user.email;
     const amount = 5000;
-    const reference = `EKI-${edikeref}`;
     const data = {
       email,
       amount,
@@ -25,6 +23,7 @@ const createCard = async (req, res) => {
     };
 
     initializePayment(data, async (error, body) => {
+      var edikeref = uuid();
       if (error) {
         return res
           .status(400)
