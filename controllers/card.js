@@ -67,6 +67,13 @@ const verifyCard = async (req, res) => {
       });
     }
 
+    if (response.data.authorization.reusable == false) {
+      return res.status(400).json({
+        msg: `Card Not Verified, Please Try Again`,
+        status: "invalid",
+      });
+    }
+
     const user = await User.findById({ _id: req.user.id });
     if (!user) {
       return res
