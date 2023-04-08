@@ -688,7 +688,7 @@ const addBankStatement = async (req, res) => {
     });
   }
 
-  const userbankStatement = await BankStatement.findOneAndReplace({
+  const userbankStatement = await BankStatement.find({
     createdBy: req.user.id,
   });
 
