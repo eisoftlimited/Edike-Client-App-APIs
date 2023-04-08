@@ -695,7 +695,7 @@ const addBankStatement = async (req, res) => {
   if (!userbankStatement) {
     return res
       .status(400)
-      .json({ msg: "Kindly Add a Bank Statement", status: "invalid" });
+      .json({ msg: "Kindly add a valid Bank Statement", status: "invalid" });
   }
 
   const trans = fs.readFileSync(`${bank_file.path}`, { encoding: "base64" });
