@@ -81,7 +81,7 @@ const registerEmail = async (req, res) => {
     password: hashpassword,
     phone: `+234${req.body.phone}`,
     otpToken: otp,
-    isAccountVerified: "pending",
+    isAccountVerified: "approved",
     isnin: "pending",
     isbvn: "pending",
     isappliedforloan: "pending",
