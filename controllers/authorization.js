@@ -94,10 +94,26 @@ const registerEmail = async (req, res) => {
 
   await newUser.save();
 
-  return res.status(200).json({
-    msg: "We've sent a 6-digit Activation Code to your Email Address",
-    status: "valid",
+  const payload = {
+    user: {
+      id: user._id,
+    },
+  };
+
+  const token = jwt.sign(payload, process.env.JWTSECRET, {
+    expiresIn: process.env.JWTLIFETIME,
   });
+
+  return res.status(200).json({
+    msg: "Verification Successful",
+    status: "valid",
+    token,
+  });
+
+  // return res.status(200).json({
+  //   msg: "We've sent a 6-digit Activation Code to your Email Address",
+  //   status: "valid",
+  // });
 };
 
 const resendOTP = async (req, res) => {
