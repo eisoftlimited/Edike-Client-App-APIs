@@ -92,6 +92,9 @@ const LoanSchema = mongoose.Schema(
     cardDetails: {
       type: Array,
     },
+    userLoan: {
+      type:Array,
+    },
     pdf: {
       type: String,
     },

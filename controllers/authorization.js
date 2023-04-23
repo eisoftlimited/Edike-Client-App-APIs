@@ -5739,6 +5739,9 @@ const subscribedmail = async (req, res) => {
       status: "valid",
     });
   });
+
+
+  
 };
 
 const contactedMail = async (req, res) => {
