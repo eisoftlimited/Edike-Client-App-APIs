@@ -3079,13 +3079,13 @@ const loginEmail = async (req, res) => {
     });
   }
 
-//   const isPasswordCorrect = await user.comparePassword(password);
-//   if (!isPasswordCorrect) {
-//     return res.status(400).json({
-//       msg: "Invalid Password Credentials",
-//       status: "invalid",
-//     });
-//   }
+  const isPasswordCorrect = await user.comparePassword(password);
+  if (!isPasswordCorrect) {
+    return res.status(400).json({
+      msg: "Invalid Password Credentials",
+      status: "invalid",
+    });
+  }
 
   if (user.isAccountVerified === "pending") {
     return res.status(400).json({
